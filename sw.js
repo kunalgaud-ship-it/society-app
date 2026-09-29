@@ -2,7 +2,7 @@
    App files are fetched from the network first (so updates arrive at once) and fall back
    to the saved copy when offline. Fonts are kept once downloaded. data.json is not handled
    here - the page keeps its own last copy. */
-const CACHE = "society-app-v7";
+const CACHE = "society-app-v8";
 const SHELL = ["./", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
