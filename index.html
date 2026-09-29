@@ -270,7 +270,8 @@ button.mc{width:100%;font:inherit}
 .logo{width:96px;height:96px;border-radius:28px;box-shadow:0 24px 50px -18px rgba(30,27,75,.85)}
 .center h1{font-size:23px;font-weight:800;letter-spacing:-.02em;margin:18px 0 4px}
 .center p{color:var(--muted);margin:0 0 18px;font-weight:500}
-.center .err{color:var(--bad);font-weight:700;min-height:22px;margin:10px 0}
+.center .err,#pinErr{color:var(--bad);font-weight:700;min-height:22px;margin:10px 0}
+#pinErr{text-align:center}
 .center input{text-align:center;font-size:20px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
 .lockc{padding:22px 18px;text-align:center}
 .lockc .t{margin:0 auto 10px;width:48px;height:48px;border-radius:16px}
@@ -339,6 +340,8 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   inDays:"{n} दिवसांनी",today:"आज",tomorrow:"उद्या",
   cSent:"तक्रार WhatsApp वर पाठवा. समितीने नोंद केल्यावर स्थिती ॲपमध्ये दिसेल.",
   pickAdmin:"कोणत्या फ्लॅटची माहिती पहायची ते निवडा.",pickSure:"फ्लॅट एकदाच निवडता येतो. नंतर तो बदलता येणार नाही.",
+  pinTitle:"समिती पिन",pinHint:"फ्लॅट बदलण्यासाठी समितीचा पिन टाका.",pinOpen:"पुढे",pinWrong:"पिन चुकीचा आहे.",
+  pinWait:"खूप चुकीचे प्रयत्न झाले. एक मिनिटाने पुन्हा प्रयत्न करा.",
   pickLock:"हा फ्लॅट निवडल्यावर या मोबाईलवर फ्लॅट बदलण्याचा पर्याय बंद होईल. परत येण्यासाठी आपली स्वतःची लिंक उघडा.",pickView:"हा फ्लॅट पहा",
   pickYes:"होय, हा माझा फ्लॅट आहे",wrongFlat:"फ्लॅट चुकीचा आहे? समितीला कळवा",
   wrongMsg:"माझ्या ॲपमध्ये फ्लॅट चुकीचा निवडला गेला आहे. कृपया माझ्या फ्लॅटची लिंक पाठवा."},
@@ -386,6 +389,8 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   inDays:"in {n} days",today:"Today",tomorrow:"Tomorrow",
   cSent:"Send the complaint on WhatsApp. Its status appears in the app once the committee notes it.",
   pickAdmin:"Choose the flat you want to look at.",pickSure:"You can choose your flat only once. It cannot be changed later.",
+  pinTitle:"Committee PIN",pinHint:"Enter the committee PIN to change the flat.",pinOpen:"Continue",pinWrong:"Wrong PIN.",
+  pinWait:"Too many wrong tries. Try again in a minute.",
   pickLock:"After choosing this flat, the change-flat option is locked on this phone. Open your own link to come back.",pickView:"Show this flat",
   pickYes:"Yes, this is my flat",wrongFlat:"Wrong flat? Tell the committee",
   wrongMsg:"The wrong flat was chosen in my app. Please send me the link for my flat."}
@@ -545,7 +550,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v10 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v11 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -555,16 +560,36 @@ function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(
 function adminFlat(){return String(S.data.admin_flat??"7")}
 function isAdmin(){const a=adminFlat();LS.del("admin");
   return String(S.flat)===a&&(S.linkFlat===a||LS.get("linkFlat","")===a)}
-function pickScreen(){hideTabs();const adm=isAdmin();
+/* With a committee PIN set, the flats can be switched only after the PIN. The data holds a slow
+   hash of the PIN, never the PIN itself. */
+function canSwitch(){return isAdmin()&&(!S.data.admin_lock||S.pinOk===true)}
+function changeFlat(){if(!isAdmin())return;if(!S.data.admin_lock)return pickScreen();
+  if(LS.get("pinWait",0)>Date.now()||S.pinWait>Date.now())return toast(t("pinWait"));
+  sheet(`${sheetHead("lock","",t("pinTitle"),t("pinHint"))}
+    <form onsubmit="return tryPin(event)" style="margin-top:16px"><input id="pinIn" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="••••••" aria-label="${t("pinTitle")}" style="text-align:center;font-size:20px;letter-spacing:.3em;font-weight:800">
+    <div class="err" id="pinErr"></div><button class="btn primary" type="submit">${ic("check")}${t("pinOpen")}</button></form>`);
+  setTimeout(()=>{const e=$("pinIn");if(e)e.focus()},60)}
+async function pinOk(pin){const L=S.data.admin_lock;
+  const km=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
+  const bits=new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt:b64(L.salt),iterations:L.iter,hash:"SHA-256"},km,256));
+  return btoa(String.fromCharCode(...bits))===L.hash}
+function tryPin(ev){ev.preventDefault();const pin=$("pinIn").value.replace(/\s/g,"");if(!pin)return false;
+  pinOk(pin).then(ok=>{if(ok){S.pinBad=0;S.pinOk=true;closeSheet();return pickScreen()}
+    S.pinBad=(S.pinBad||0)+1;if($("pinIn"))$("pinIn").value="";
+    if(S.pinBad>=5){S.pinBad=0;S.pinWait=Date.now()+60000;LS.set("pinWait",S.pinWait);closeSheet();return toast(t("pinWait"))}
+    if($("pinErr"))$("pinErr").textContent=t("pinWrong")});
+  return false}
+function pickScreen(){hideTabs();const adm=canSwitch();
   $("app").innerHTML=`<div class="center" style="place-items:start center"><div class="box"><img class="logo" src="icon-192.png" alt=""><h1>${t("pickTitle")}</h1><p>${t(adm?"pickAdmin":"pickHint")}</p>
     <div class="card pick">${S.data.flats.map((f,i)=>!adm&&String(f.no)===adminFlat()?"":`<button class="rw" onclick="pickFlat(${i})">${avatar(f,i)}<span class="tx"><b>${esc(f.name)}</b><small>${t("flat")} ${n(f.no)}</small></span><span class="go">${ic("next")}</span></button>`).join("")}</div></div></div>`;
   scrollTo(0,0)}
-function pickFlat(i){const f=S.data.flats[i],adm=isAdmin();if(adm&&String(f.no)===adminFlat())return setFlat(i);
+function pickFlat(i){const f=S.data.flats[i],adm=canSwitch();if(adm&&String(f.no)===adminFlat())return setFlat(i);
   sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)}</p></div></div>
     <div class="banner warn" style="margin:16px 0">${ic("alert")}<span>${t(adm?"pickLock":"pickSure")}</span></div>
     <button class="btn primary" onclick="setFlat(${i})">${ic("check")}${t(adm?"pickView":"pickYes")}</button><div style="height:10px"></div><button class="btn" onclick="closeSheet()">${t("back")}</button>`)}
-function setFlat(i){if(!isAdmin()&&String(S.data.flats[i].no)===adminFlat())return;
-  S.flat=String(S.data.flats[i].no);LS.set("flat",S.flat);S.tab="home";S.enter=true;closeSheet();render();scrollTo(0,0)}
+function setFlat(i){if(!canSwitch()&&String(S.data.flats[i].no)===adminFlat())return;
+  if(me()&&!canSwitch())return;                     // a flat is already saved on this phone: locked
+  S.flat=String(S.data.flats[i].no);LS.set("flat",S.flat);S.pinOk=false;S.tab="home";S.enter=true;closeSheet();render();scrollTo(0,0)}
 function wrongFlat(){const f=me();wa(`🏢 ${bname()}\n${t("flat")} ${f.no} - ${f.name}\n\n${t("wrongMsg")}`,S.data.contact.phone)}
 
 /* ---------------------------------------------------------------- shell */
@@ -705,7 +730,7 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
     ${item("call","c4",t("contacts"),t("contactsS"),"contactsSheet()")}
     ${item("chat","c4",t("contact"),t("contactS"),"contactCommittee()")}</div></div>
   <div class="card"><div class="rows">
-    ${isAdmin()?item("home","c5",t("changeFlat"),esc(f.name)+" · "+t("flat")+" "+n(f.no),"pickScreen()")
+    ${isAdmin()?item("home","c5",t("changeFlat"),esc(f.name)+" · "+t("flat")+" "+n(f.no),"changeFlat()")
       :item("home","c5",esc(f.name)+" · "+t("flat")+" "+n(f.no),t("wrongFlat"),"wrongFlat()")}
     ${item("globe","c6",t("language"),t("languageS"),"toggleLang()")}
     ${item(dark?"moon":"sun","c3",t("theme"),dark?t("themeD"):t("themeL"),"toggleTheme()")}
