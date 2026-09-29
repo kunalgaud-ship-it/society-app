@@ -321,7 +321,10 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   board:"तक्रारींची स्थिती",boardS:"समितीने नोंदवलेल्या तक्रारी",noBoard:"सध्या कोणतीही तक्रार नोंदवलेली नाही.",
   stopen:"नोंदवली",stprogress:"काम सुरू",stdone:"पूर्ण",common:"सामायिक जागा",
   inDays:"{n} दिवसांनी",today:"आज",tomorrow:"उद्या",
-  cSent:"तक्रार WhatsApp वर पाठवा. समितीने नोंद केल्यावर स्थिती ॲपमध्ये दिसेल."},
+  cSent:"तक्रार WhatsApp वर पाठवा. समितीने नोंद केल्यावर स्थिती ॲपमध्ये दिसेल.",
+  pickAdmin:"कोणत्या फ्लॅटची माहिती पहायची ते निवडा.",pickSure:"फ्लॅट एकदाच निवडता येतो. नंतर तो बदलता येणार नाही.",
+  pickYes:"होय, हा माझा फ्लॅट आहे",wrongFlat:"फ्लॅट चुकीचा आहे? समितीला कळवा",
+  wrongMsg:"माझ्या ॲपमध्ये फ्लॅट चुकीचा निवडला गेला आहे. कृपया माझ्या फ्लॅटची लिंक पाठवा."},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
   offline:"No internet. Showing the last saved data.",hello:"Hello",flat:"Flat",outstanding:"Outstanding",
   allPaid:"All dues cleared. Thank you!",advance:"Paid in advance",pendingMonths:"Pending months",payNow:"Pay now",details:"Details",
@@ -361,7 +364,10 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   board:"Complaint status",boardS:"Complaints noted by the committee",noBoard:"No complaints noted right now.",
   stopen:"Noted",stprogress:"Work started",stdone:"Done",common:"Common area",
   inDays:"in {n} days",today:"Today",tomorrow:"Tomorrow",
-  cSent:"Send the complaint on WhatsApp. Its status appears in the app once the committee notes it."}
+  cSent:"Send the complaint on WhatsApp. Its status appears in the app once the committee notes it.",
+  pickAdmin:"Choose the flat you want to look at.",pickSure:"You can choose your flat only once. It cannot be changed later.",
+  pickYes:"Yes, this is my flat",wrongFlat:"Wrong flat? Tell the committee",
+  wrongMsg:"The wrong flat was chosen in my app. Please send me the link for my flat."}
 };
 
 /* ---------------------------------------------------------------- icons (inline, no downloads) */
@@ -478,7 +484,7 @@ async function decrypt(enc,pass){
 function readLink(){
   const h=new URLSearchParams(location.hash.slice(1));
   if(h.get("k"))S.linkKey=normPass(h.get("k"));
-  if(h.get("flat")&&S.flat===null){S.flat=h.get("flat");LS.set("flat",S.flat)}
+  if(h.get("flat")){S.flat=h.get("flat");LS.set("flat",S.flat)}      // a personal invite always sets the flat
   if(TABS.includes(h.get("tab")))S.tab=h.get("tab")}
 /* The working key stays in the address, so a bookmark, a home-screen shortcut or "open in
    browser" still opens the app on phones that do not keep saved data. */
@@ -514,13 +520,24 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v5 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v6 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
-function pickScreen(){hideTabs();
-  $("app").innerHTML=`<div class="center" style="place-items:start center"><div class="box"><img class="logo" src="icon-192.png" alt=""><h1>${t("pickTitle")}</h1><p>${t("pickHint")}</p>
-    <div class="card pick">${S.data.flats.map((f,i)=>`<button class="rw" onclick="pickFlat(${i})">${avatar(f,i)}<span class="tx"><b>${esc(f.name)}</b><small>${t("flat")} ${n(f.no)}</small></span><span class="go">${ic("next")}</span></button>`).join("")}</div></div></div>`;
+/* Only the committee's flat may switch flats. A phone that has ever been on that flat keeps the
+   right, so the committee can look at another flat and come back. Members choose once; a wrong
+   choice is corrected with the personal invite link from the committee. */
+function adminFlat(){return String(S.data.admin_flat??"7")}
+function isAdmin(){const a=adminFlat();if(String(S.flat)===a){LS.set("admin",a);return true}return LS.get("admin","")===a}
+function pickScreen(){hideTabs();const adm=isAdmin();
+  $("app").innerHTML=`<div class="center" style="place-items:start center"><div class="box"><img class="logo" src="icon-192.png" alt=""><h1>${t("pickTitle")}</h1><p>${t(adm?"pickAdmin":"pickHint")}</p>
+    <div class="card pick">${S.data.flats.map((f,i)=>!adm&&String(f.no)===adminFlat()?"":`<button class="rw" onclick="pickFlat(${i})">${avatar(f,i)}<span class="tx"><b>${esc(f.name)}</b><small>${t("flat")} ${n(f.no)}</small></span><span class="go">${ic("next")}</span></button>`).join("")}</div></div></div>`;
   scrollTo(0,0)}
-function pickFlat(i){S.flat=String(S.data.flats[i].no);LS.set("flat",S.flat);S.tab="home";S.enter=true;render();scrollTo(0,0)}
+function pickFlat(i){const f=S.data.flats[i];if(isAdmin())return setFlat(i);
+  sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)}</p></div></div>
+    <div class="banner warn" style="margin:16px 0">${ic("alert")}<span>${t("pickSure")}</span></div>
+    <button class="btn primary" onclick="setFlat(${i})">${ic("check")}${t("pickYes")}</button><div style="height:10px"></div><button class="btn" onclick="closeSheet()">${t("back")}</button>`)}
+function setFlat(i){if(!isAdmin()&&String(S.data.flats[i].no)===adminFlat())return;
+  S.flat=String(S.data.flats[i].no);LS.set("flat",S.flat);S.tab="home";S.enter=true;closeSheet();render();scrollTo(0,0)}
+function wrongFlat(){const f=me();wa(`🏢 ${bname()}\n${t("flat")} ${f.no} - ${f.name}\n\n${t("wrongMsg")}`,S.data.contact.phone)}
 
 /* ---------------------------------------------------------------- shell */
 function hideTabs(){$("tabs").style.display="none";closeSheet()}
@@ -660,7 +677,8 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
     ${item("call","c4",t("contacts"),t("contactsS"),"contactsSheet()")}
     ${item("chat","c4",t("contact"),t("contactS"),"contactCommittee()")}</div></div>
   <div class="card"><div class="rows">
-    ${item("home","c5",t("changeFlat"),esc(f.name)+" · "+t("flat")+" "+n(f.no),"pickScreen()")}
+    ${isAdmin()?item("home","c5",t("changeFlat"),esc(f.name)+" · "+t("flat")+" "+n(f.no),"pickScreen()")
+      :item("home","c5",esc(f.name)+" · "+t("flat")+" "+n(f.no),t("wrongFlat"),"wrongFlat()")}
     ${item("globe","c6",t("language"),t("languageS"),"toggleLang()")}
     ${item(dark?"moon":"sun","c3",t("theme"),dark?t("themeD"):t("themeL"),"toggleTheme()")}
     ${item("refresh","c7",t("refresh"),t("updated")+": "+fmtStamp(S.data.updated),"refresh()")}</div></div>
