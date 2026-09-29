@@ -248,6 +248,13 @@ button.mc{width:100%;font:inherit}
 .payto b{display:block;font-size:16px;overflow-wrap:anywhere}
 .payto button{padding:10px 13px;border-radius:12px;background:var(--brandSoft);color:var(--brand);font-weight:800;font-size:13px;display:flex;gap:6px;align-items:center}
 .payto button .ic{width:16px;height:16px}
+.payhd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 3px 9px;font-weight:800;font-size:14px}
+.payhd .payLbl{color:var(--brand);font-size:16px}
+.apps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:9px}
+.apps button{display:grid;justify-items:center;gap:8px;padding:14px 6px 12px;border-radius:16px;border:1.5px solid var(--line);background:var(--panel2);font-weight:800;font-size:13px}
+.apps button.active{border-color:var(--brand);background:var(--brandSoft)}
+.apps button:active{transform:scale(.97)}
+.apps i{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff;font-style:normal;font-weight:800;font-size:16px}
 .qrc{display:flex;gap:14px;align-items:center;padding:14px;border-radius:18px;background:var(--panel2);margin-bottom:16px}
 #payQr{width:132px;height:132px;flex-shrink:0;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--line)}
 #payQr svg{width:100%;height:100%;display:block}
@@ -305,8 +312,9 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   lock:"ॲप लॉक करा",lockS:"पासकोड पुन्हा विचारला जाईल",passTitle:"सोसायटी पासकोड",
   passHint:"समितीने WhatsApp वर पाठवलेली लिंक उघडा किंवा पासकोड टाका.",open:"उघडा",wrong:"पासकोड चुकीचा आहे.",
   changed:"पासकोड बदलला आहे. समितीकडून नवीन पासकोड घ्या.",pickTitle:"आपला फ्लॅट निवडा",pickHint:"हे फक्त एकदाच करावे लागेल.",
-  payTitle:"मेंटेनन्स भरणा",fullDue:"संपूर्ण थकबाकी",oneMonth:"एक महिना",other:"इतर रक्कम",openUpi:"UPI ॲपने भरा",
-  upiId:"UPI आयडी",copy:"कॉपी",copied:"कॉपी झाले",payHelp:"UPI ॲप न उघडल्यास UPI आयडी कॉपी करून GPay / PhonePe मधून भरा.",
+  payTitle:"मेंटेनन्स भरणा",fullDue:"संपूर्ण थकबाकी",oneMonth:"एक महिना",other:"इतर रक्कम",payWith:"कोणत्या ॲपने भरायचे?",otherUpi:"इतर UPI ॲप",
+  noApp:"ॲप उघडले नाही. QR स्कॅन करा किंवा UPI आयडी कॉपी करून भरा.",
+  upiId:"UPI आयडी",copy:"कॉपी",copied:"कॉपी झाले",payHelp:"ॲपवर टॅप करा – ते थेट उघडेल, रक्कम आणि UPI आयडी भरलेले येतील. ॲप न उघडल्यास QR किंवा UPI आयडी वापरा.",
   inform:"भरणा केल्याचे समितीला कळवा",informHelp:"भरणा झाल्यावर स्क्रीनशॉट WhatsApp वर पाठवा. समितीने नोंद केल्यावर ॲपमध्ये दिसेल.",
   noUpi:"समितीने अद्याप UPI आयडी जोडलेला नाही. कृपया समितीशी संपर्क साधा.",needAmt:"कृपया रक्कम टाका.",
   type:"प्रकार",message:"तपशील",cPh:"काय अडचण आहे ते लिहा…",send:"WhatsApp वर पाठवा",needMsg:"कृपया तपशील लिहा.",
@@ -350,8 +358,9 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   lock:"Lock app",lockS:"Asks for the passcode again",passTitle:"Society passcode",
   passHint:"Open the link sent by the committee on WhatsApp, or enter the passcode.",open:"Open",wrong:"Wrong passcode.",
   changed:"The passcode has changed. Ask the committee for the new one.",pickTitle:"Choose your flat",pickHint:"You only need to do this once.",
-  payTitle:"Pay maintenance",fullDue:"Full outstanding",oneMonth:"One month",other:"Other amount",openUpi:"Pay with UPI app",
-  upiId:"UPI ID",copy:"Copy",copied:"Copied",payHelp:"If the UPI app does not open, copy the UPI ID and pay from GPay / PhonePe.",
+  payTitle:"Pay maintenance",fullDue:"Full outstanding",oneMonth:"One month",other:"Other amount",payWith:"Pay with which app?",otherUpi:"Other UPI app",
+  noApp:"The app did not open. Scan the QR or copy the UPI ID and pay.",
+  upiId:"UPI ID",copy:"Copy",copied:"Copied",payHelp:"Tap your app – it opens directly with the amount and UPI ID filled in. If it does not open, use the QR or the UPI ID.",
   inform:"Tell the committee you have paid",informHelp:"After paying, send the screenshot on WhatsApp. It shows here once the committee records it.",
   noUpi:"The committee has not added a UPI ID yet. Please contact the committee.",needAmt:"Please enter an amount.",
   type:"Type",message:"Details",cPh:"Describe the problem…",send:"Send on WhatsApp",needMsg:"Please write the details.",
@@ -436,6 +445,10 @@ const TABS=["home","acc","mem","not","more"];
 const TAB_ICON={home:"home",acc:"chart",mem:"users",not:"bell",more:"grid"};
 const AV=["#6366f1","#e11d48","#f59e0b","#059669","#0284c7","#9333ea","#db2777","#0d9488"];
 const IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const ANDROID=/Android/i.test(navigator.userAgent);
+const UPI_APPS=[{id:"phonepe",name:"PhonePe",mark:"Pe",pkg:"com.phonepe.app",ios:"phonepe://pay",c:"#5f259f"},
+  {id:"gpay",name:"Google Pay",mark:"G",pkg:"com.google.android.apps.nbu.paisa.user",ios:"gpay://upi/pay",c:"#1a73e8"},
+  {id:"paytm",name:"Paytm",mark:"Pt",pkg:"net.one97.paytm",ios:"paytmmp://pay",c:"#0f4a8a"}];
 const STANDALONE=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 const CALM=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const NOW=new Date();
@@ -530,7 +543,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v8 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v9· link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats. A phone that has ever been on that flat keeps the
    right, so the committee can look at another flat and come back. Members choose once; a wrong
@@ -714,7 +727,9 @@ function paySheet(){const D=S.data,f=me(),c=D.contact;
     ${c.pay_url?`<button class="btn primary" id="payOnline" onclick="openOnline()">${ic("cash")}${t("payOnline")} · <span class="payLbl num">${money(S.payAmt)}</span></button>
     <p class="help">${t("payOnlineS")}</p>`:""}
     ${c.upi?`<div class="payto"><div><small>${t("upiId")}</small><b>${esc(c.upi)}</b><small>${esc(c.payee)}</small></div><button onclick="copyText(S.data.contact.upi)">${ic("copy")}${t("copy")}</button></div>
-    <button class="btn${c.pay_url?"":" primary"}" onclick="openUpi()">${ic("wallet")}${t("openUpi")} · <span class="payLbl num">${money(S.payAmt)}</span></button>
+    <div class="payhd"><span>${t("payWith")}</span><span class="payLbl num">${money(S.payAmt)}</span></div>
+    <div class="apps" id="payApps">${UPI_APPS.map(a=>`<button class="${LS.get("upiApp","")===a.id?"active":""}" data-app="${a.id}" onclick="openUpi('${a.id}')"><i style="background:${a.c}">${a.mark}</i>${a.name}</button>`).join("")}</div>
+    <button class="btn" id="payAny" onclick="openUpi()">${ic("wallet")}${t("otherUpi")}</button>
     <p class="help">${t("payHelp")}</p>
     <div class="qrc"><div id="payQr"></div><div><span class="chip good">${ic("check")}${t("free")}</span><b>${t("qrTitle")}</b><small>${t("qrHint")}</small></div></div>`:""}
     <button class="btn wa" onclick="informPaid()">${ic("chat")}${t("inform")}</button>
@@ -730,9 +745,22 @@ function onlineUrl(){const f=me();let u;try{u=new URL(S.data.contact.pay_url)}ca
     u.searchParams.set("flat_no",String(f.no));u.searchParams.set("month",MON.enF[curMonth()]+" "+S.data.year)}
   return u.toString().replace(/\+/g,"%20")}
 function openOnline(){if(!S.payAmt)return toast(t("needAmt"));const u=onlineUrl();if(u)window.open(u,"_blank")}
-function upiUrl(){const c=S.data.contact,f=me(),p={pa:c.upi,pn:c.payee};if(S.payAmt)p.am=S.payAmt.toFixed(2);p.cu="INR";p.tn="Flat "+f.no+" maintenance";
-  return "upi://pay?"+new URLSearchParams(p).toString().replace(/\+/g,"%20")}
-function openUpi(){if(!S.payAmt)return toast(t("needAmt"));location.href=upiUrl()}
+function upiQuery(){const c=S.data.contact,f=me(),p={pa:c.upi,pn:c.payee};if(S.payAmt)p.am=S.payAmt.toFixed(2);p.cu="INR";p.tn="Flat "+f.no+" maintenance";
+  return new URLSearchParams(p).toString().replace(/\+/g,"%20")}
+function upiUrl(){return "upi://pay?"+upiQuery()}
+/* A plain upi:// link opens whichever app the phone prefers (often WhatsApp). Naming the app
+   sends the member straight to PhonePe / Google Pay / Paytm. */
+function appUrl(id){const a=UPI_APPS.find(x=>x.id===id),q=upiQuery();
+  if(a&&ANDROID)return `intent://pay?${q}#Intent;scheme=upi;package=${a.pkg};end`;
+  if(a&&IOS)return a.ios+"?"+q;
+  return "upi://pay?"+q}
+function launch(url){location.href=url}
+function openUpi(id){if(!S.payAmt)return toast(t("needAmt"));
+  if(id){LS.set("upiApp",id);document.querySelectorAll("#payApps button").forEach(b=>b.classList.toggle("active",b.dataset.app===id))}
+  let left=false;const gone=()=>{left=true};
+  addEventListener("blur",gone);document.addEventListener("visibilitychange",gone);
+  setTimeout(()=>{removeEventListener("blur",gone);document.removeEventListener("visibilitychange",gone);if(!left)toast(t("noApp"))},2500);
+  launch(appUrl(id))}
 function drawQr(){const box=$("payQr");if(!box)return;const q=qrCode(upiUrl());if(!q){box.innerHTML="";return}
   const n=q.modules.length,pad=4;let d="";q.modules.forEach((row,y)=>row.forEach((on,x)=>{if(on)d+=`M${x+pad} ${y+pad}h1v1h-1z`}));
   box.innerHTML=`<svg viewBox="0 0 ${n+pad*2} ${n+pad*2}" shape-rendering="crispEdges" role="img" aria-label="UPI QR"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}
