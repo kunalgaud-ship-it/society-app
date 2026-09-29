@@ -108,7 +108,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0
 .mc.paid,.mc.adj{background:var(--goodSoft)} .mc.paid b,.mc.adj b{color:var(--good)}
 .mc.partial{background:var(--warnSoft)} .mc.partial b{color:var(--warn)}
 .mc.due{background:var(--badSoft)} .mc.due b{color:var(--bad)}
-.mc.future b{color:var(--muted);font-weight:500}
+.mc.future b,.mc.none b{color:var(--muted);font-weight:500}
 .mc.now{border-color:var(--brand)}
 .mc.now::after{content:"";position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--brand)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:13px;font-weight:600}
@@ -299,7 +299,8 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   cHead:"तक्रार / विनंती",pHead:"मेंटेनन्स भरणा",amount:"रक्कम",date:"दिनांक",paidMsg:"UPI ने भरणा केला आहे. स्क्रीनशॉट सोबत पाठवत आहे.",
   hi:"नमस्कार, मला सोसायटीबद्दल माहिती हवी आहे.",shareTxt:"सोसायटी ॲप उघडण्यासाठी ही लिंक वापरा:",
   noStore:"हा ब्राउझर माहिती जतन करत नाही (Private / Incognito मोड). समितीने पाठवलेली लिंक Chrome च्या साध्या टॅबमध्ये उघडा.",
-  qPay:"भरणा",qComp:"तक्रार",qNot:"सूचना",qCon:"संपर्क",months:"महिने",thisMonth:"या महिन्यात"},
+  qPay:"भरणा",qComp:"तक्रार",qNot:"सूचना",qCon:"संपर्क",months:"महिने",
+  thisDue:"{m} ची थकबाकी",monthPaid:"या महिन्याचा भरणा पूर्ण. धन्यवाद!",partPaid:"{a} जमा झाले, उरलेली रक्कम बाकी"},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
   offline:"No internet. Showing the last saved data.",hello:"Hello",flat:"Flat",outstanding:"Outstanding",
   allPaid:"All dues cleared. Thank you!",advance:"Paid in advance",pendingMonths:"Pending months",payNow:"Pay now",details:"Details",
@@ -329,7 +330,8 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   cHead:"Complaint / request",pHead:"Maintenance payment",amount:"Amount",date:"Date",paidMsg:"Paid by UPI. Sending the screenshot with this message.",
   hi:"Hello, I need some information about the society.",shareTxt:"Use this link to open the society app:",
   noStore:"This browser does not keep saved data (Private / Incognito mode). Open the committee's link in a normal Chrome tab.",
-  qPay:"Pay",qComp:"Complaint",qNot:"Notices",qCon:"Contact",months:"months",thisMonth:"This month"}
+  qPay:"Pay",qComp:"Complaint",qNot:"Notices",qCon:"Contact",months:"months",
+  thisDue:"{m} outstanding",monthPaid:"This month is paid. Thank you!",partPaid:"{a} received, the rest is pending"}
 };
 
 /* ---------------------------------------------------------------- icons (inline, no downloads) */
@@ -417,15 +419,21 @@ setTheme(LS.get("theme",matchMedia("(prefers-color-scheme: dark)").matches?"dark
 /* ---------------------------------------------------------------- data rules (same as the committee's sheet) */
 function me(){return S.data.flats.find(f=>String(f.no)===String(S.flat))}
 function curMonth(){return S.data.year===NOW.getFullYear()?NOW.getMonth():11}
-/* paid / partial / due / future. "adj" = cell is short but the flat owes nothing overall
-   (paid through another month), so it is not shown as pending. */
-function status(f,m){const D=S.data,v=f.paid[m];
-  if(v>=D.rate)return"paid";
-  if(m>=D.months_due)return v>0?"partial":"future";
-  if(f.outstanding<=0)return"adj";
+/* Members see dues for the CURRENT month only. Other months show what was paid, never what
+   is pending (the committee follows up older dues itself). */
+function dueTo(){return Math.min(12,curMonth()+1)}
+/* >= 0 when everything up to this month is covered overall (e.g. two months paid in one entry) */
+function credit(f){const k=dueTo();let s=0;for(let m=0;m<k;m++)s+=f.paid[m];return s-S.data.rate*k}
+/* current month: paid / partial / due, or "adj" when the entry is short but covered by other
+   months. Any other month: paid (something was received), none (earlier) or future. */
+function status(f,m){const v=f.paid[m],cm=curMonth();
+  if(m!==cm)return v>0?"paid":m<cm?"none":"future";
+  if(v>=S.data.rate)return"paid";
+  if(credit(f)>=0)return"adj";
   return v>0?"partial":"due"}
-function pendingMonths(f){const out=[];for(let m=0;m<S.data.months_due&&m<12;m++){const s=status(f,m);if(s==="due"||s==="partial")out.push(m)}return out}
-function monthCounts(m){const c={paid:0,partial:0,due:0};S.data.flats.forEach(f=>{const s=status(f,m);if(s==="paid"||s==="adj")c.paid++;else if(s==="partial")c.partial++;else c.due++});return c}
+function monthDue(f,m){const s=status(f,m);return s==="due"||s==="partial"?Math.round(S.data.rate-f.paid[m]):0}
+function monthDueAll(m){return S.data.flats.reduce((s,f)=>s+monthDue(f,m),0)}
+function monthCounts(m){const c={paid:0,partial:0,due:0};S.data.flats.forEach(f=>{const s=status(f,m);if(s==="paid"||s==="adj")c.paid++;else if(s==="partial")c.partial++;else if(s==="due")c.due++});return c}
 
 /* ---------------------------------------------------------------- unlock */
 function b64(s){const bin=atob(s),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
@@ -474,7 +482,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v3 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v4 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 function pickScreen(){hideTabs();
   $("app").innerHTML=`<div class="center" style="place-items:start center"><div class="box"><img class="logo" src="icon-192.png" alt=""><h1>${t("pickTitle")}</h1><p>${t("pickHint")}</p>
@@ -509,12 +517,12 @@ function lockApp(){S.pass="";S.linkKey="";S.data=null;LS.del("pass");keepLink();
 function yearGrid(f){const cm=curMonth();
   return `<div class="yg">${f.paid.map((v,m)=>{const s=status(f,m);
     return `<div class="mc ${s}${m===cm?" now":""}"><small>${mon(m)}</small><b class="num">${v>0?money(v):s==="due"?t("due"):s==="adj"?"✓":"—"}</b></div>`}).join("")}</div>
-  <div class="legend"><span><i style="background:var(--good)"></i>${t("paid")}</span><span><i style="background:var(--gold)"></i>${t("partial")}</span><span><i style="background:var(--bad)"></i>${t("due")}</span></div>`}
+  <div class="legend"><span><i style="background:var(--good)"></i>${t("paid")}</span><span><i style="background:var(--bad)"></i>${mon(cm)} ${t("due")}</span></div>`}
 function noticeBody(x){return `${x.pinned?`<span class="chip warn">${ic("pin")}${t("important")}</span>`:""}<div class="hd"><b>${esc(x.title)}</b><small>${fmtDate(x.date)}</small></div>${x.body?`<div class="bd">${esc(x.body)}</div>`:""}`}
 function noticeCard(x){return `<div class="card notice${x.pinned?" pin":""}">${noticeBody(x)}</div>`}
 /* last month worth showing: the current one, or later if the sheet already has figures there */
-function lastMonth(){const D=S.data;let last=Math.min(11,Math.max(curMonth(),D.months_due-1));
-  D.months.forEach((m,i)=>{if(m.collected||m.expenses)last=Math.max(last,i)});return last}
+function lastMonth(){let last=curMonth();
+  S.data.months.forEach((m,i)=>{if(m.collected||m.expenses)last=Math.max(last,i)});return last}
 function monthPills(sel,fn){const last=lastMonth();
   return `<div class="pills" id="pills">${S.data.months.map((_,m)=>m<=last?`<button class="pill${m===sel?" active":""}" onclick="${fn}(${m})">${mon(m)}</button>`:"").join("")}</div>`}
 /* keep the chosen month in view inside its own strip, without moving the page */
@@ -527,23 +535,23 @@ function donut(items,total){const r=50,c=2*Math.PI*r;let off=0;
     const s=`<circle cx="64" cy="64" r="${r}" fill="none" stroke="${esc(it.color)}" stroke-width="18" stroke-dasharray="${vis.toFixed(1)} ${(c-vis).toFixed(1)}" stroke-dashoffset="${(-off).toFixed(1)}" transform="rotate(-90 64 64)"/>`;off+=len;return s}).join("")}</svg>`}
 
 /* ---------------------------------------------------------------- home */
-function homeView(){const D=S.data,f=me(),cm=curMonth(),mo=D.months[cm],c=monthCounts(cm),pend=pendingMonths(f);
-  const due=Math.min(12,D.months_due),done=due-pend.length;
-  let st;
-  if(f.outstanding>0)st=`<div class="lbl">${t("outstanding")}</div><div class="big num" data-count="${Math.round(f.outstanding)}">${money(f.outstanding)}</div>${pend.length?`<div class="sub">${t("pendingMonths")}: ${pend.map(mon).join(", ")}</div>`:""}`;
-  else if(f.outstanding<0)st=`<div class="lbl">${t("advance")}</div><div class="big num" data-count="${Math.round(-f.outstanding)}">${money(-f.outstanding)}</div><div class="sub">${t("allPaid")}</div>`;
-  else st=`<div class="lbl">${t("outstanding")}</div><div class="big num">${money(0)}</div><div class="sub">${t("allPaid")}</div>`;
+function homeView(){const D=S.data,f=me(),cm=curMonth(),mo=D.months[cm],c=monthCounts(cm);
+  const due=dueTo(),owe=monthDue(f,cm);
+  let done=0;for(let m=0;m<due;m++){const s=status(f,m);if(s==="paid"||s==="adj")done++}
+  const st=owe>0
+    ?`<div class="lbl">${t("thisDue",{m:monF(cm)})}</div><div class="big num" data-count="${owe}">${money(owe)}</div><div class="sub">${f.paid[cm]>0?t("partPaid",{a:money(f.paid[cm])}):t("rate")+": "+money(D.rate)}</div>`
+    :`<div class="lbl">${t("thisDue",{m:monF(cm)})}</div><div class="big num">${money(0)}</div><div class="sub">${t("monthPaid")}</div>`;
   const showInstall=!STANDALONE&&!LS.get("noInstall",false);
   const top=D.notices[0];
   return `${showInstall?`<div class="banner info">${tile("phone","c6")}<span class="msg">${t("instBanner")}</span><button class="go" onclick="installSheet()">${t("instNow")}</button><button class="x" onclick="LS.set('noInstall',true);render()" aria-label="close">${ic("x")}</button></div>`:""}
   <div class="hero"><div class="hrow"><div><div class="who">${t("hello")} 🙏</div><b class="nm">${esc(f.name)}</b><span class="tag">${t("flat")} ${n(f.no)}</span></div>${ring(done,due,t("months"))}</div>${st}
-    <div class="acts">${f.outstanding>0?`<button class="main" onclick="paySheet()">${ic("wallet")}${t("payNow")}</button>`:""}<button onclick="flatSheet(${D.flats.indexOf(f)})">${ic("receipt")}${t("details")}</button></div></div>
+    <div class="acts">${owe>0?`<button class="main" onclick="paySheet()">${ic("wallet")}${t("payNow")}</button>`:""}<button onclick="flatSheet(${D.flats.indexOf(f)})">${ic("receipt")}${t("details")}</button></div></div>
   <div class="qa"><button onclick="paySheet()">${tile("wallet")}${t("qPay")}</button><button onclick="complaintSheet()">${tile("pen","c2")}${t("qComp")}</button>
     <button onclick="go('not')">${tile("bell","c3")}${t("qNot")}${unseen()?'<span class="dot"></span>':""}</button><button onclick="contactCommittee()">${tile("chat","c4")}${t("qCon")}</button></div>
   ${top?`<div class="card notice${top.pinned?" pin":""}"><h3>${tile("bell","c3","sm")}${t("latest")}<span class="sp"></span><button onclick="go('not')">${t("all")}${ic("next")}</button></h3>${noticeBody(top)}</div>`:""}
   <div class="card"><h3>${tile("cal","","sm")}${t("myYear",{y:n(D.year)})}</h3>${yearGrid(f)}</div>
   <div class="card"><h3>${tile("bank","c5","sm")}${t("society")}<span class="sp"></span><button onclick="go('acc')">${t("details")}${ic("next")}</button></h3>
-    <div class="kp"><div class="k"><span>${t("bank")}</span><b class="num">${money(D.balance)}</b></div><div class="k bad"><span>${t("totalDue")}</span><b class="num">${money(D.totals.outstanding)}</b></div>
+    <div class="kp"><div class="k"><span>${t("bank")}</span><b class="num">${money(D.balance)}</b></div><div class="k bad"><span>${t("thisDue",{m:monF(cm)})}</span><b class="num">${money(monthDueAll(cm))}</b></div>
       <div class="k"><span>${ic("down")}${monF(cm)} · ${t("collected")}</span><b class="num">${money(mo.collected)}</b></div><div class="k"><span>${ic("up")}${monF(cm)} · ${t("expenses")}</span><b class="num">${money(mo.expenses)}</b></div></div>
     <div class="line small" style="margin-top:10px"><span style="font-weight:600">${monF(cm)}: ${t("paidCount",{a:n(c.paid),b:n(D.flats.length)})}</span><button class="link" onclick="go('mem')">${t("details")}${ic("next")}</button></div>
     <div class="prog"><i style="width:${Math.round(c.paid/D.flats.length*100)}%"></i></div></div>
@@ -560,7 +568,7 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
   return `<div class="bal"><div class="lbl">${ic("bank")}${t("bank")}</div><div class="big num" data-count="${Math.round(D.balance)}">${money(D.balance)}</div>
     <div class="io"><div><span>${ic("down")}${t("ytdIn")}</span><b class="num">${money(T2.collected)}</b></div><div><span>${ic("up")}${t("ytdOut")}</span><b class="num">${money(T2.expenses)}</b></div></div>
     <div class="ft"><span>${net>=0?t("saving"):t("deficit")} (${n(D.year)})</span><b class="num${net>=0?"":" neg"}">${money(net,true)}</b></div>
-    <div class="ft" style="margin-top:8px"><span>${t("totalDue")}</span><b class="num neg">${money(T2.outstanding)}</b></div></div>
+    <div class="ft" style="margin-top:8px"><span>${t("thisDue",{m:monF(curMonth())})}</span><b class="num neg">${money(monthDueAll(curMonth()))}</b></div></div>
   <div class="card"><h3>${tile("chart","","sm")}${t("chart")}</h3>
     <div class="chartWrap"><div class="chart">${D.months.map((m,i)=>i>lastMonth()?"":`<button class="cm${i===sel?" active":""}" onclick="setAccMonth(${i})" aria-label="${monF(i)}"><span class="bars"><i class="c-in" style="height:${Math.round(m.collected/max*100)}%"></i><i class="c-out" style="height:${Math.round(m.expenses/max*100)}%"></i></span><small>${mon(i)}</small></button>`).join("")}</div></div>
     <div class="legend"><span><i class="c-in"></i>${t("collected")}</span><span><i class="c-out"></i>${t("expenses")}</span></div></div>
@@ -580,23 +588,22 @@ function plain(s){const i=s.indexOf(" ");return i>0&&i<=8?s.slice(i+1):s}
 /* ---------------------------------------------------------------- members */
 function setMemMonth(m){const y=scrollY;S.memMonth=m;render();scrollTo(0,y)}
 function memView(){const D=S.data,m=S.memMonth,c=monthCounts(m),mine=String(S.flat);
-  const rank={due:0,partial:1,adj:2,paid:2,future:3};
+  const rank={due:0,partial:1,adj:2,paid:2,none:3,future:3},now=m===curMonth();
   const list=D.flats.map((f,i)=>({f,i,s:status(f,m)})).sort((a,b)=>rank[a.s]-rank[b.s]||a.i-b.i);
   const chip=x=>x.s==="paid"?`<span class="chip good">${ic("check")}${money(x.f.paid[m])}</span>`:x.s==="adj"?`<span class="chip good">${ic("check")}${t("adj")}</span>`:
     x.s==="partial"?`<span class="chip warn">${money(x.f.paid[m])}</span>`:x.s==="due"?`<span class="chip bad">${t("due")}</span>`:`<span class="chip info">—</span>`;
   return `<div class="card"><h3>${tile("cal","","sm")}${monF(m)} ${n(D.year)}</h3>${monthPills(m,"setMemMonth")}
-    <div class="chips" style="margin-top:10px"><span class="chip good">${ic("check")}${t("paid")} ${n(c.paid)}</span>${c.partial?`<span class="chip warn">${t("partial")} ${n(c.partial)}</span>`:""}<span class="chip bad">${t("pending")} ${n(c.due)}</span></div>
+    <div class="chips" style="margin-top:10px"><span class="chip good">${ic("check")}${t("paid")} ${n(c.paid)}</span>${c.partial?`<span class="chip warn">${t("partial")} ${n(c.partial)}</span>`:""}${now?`<span class="chip bad">${t("pending")} ${n(c.due)}</span>`:""}</div>
     <div class="prog"><i style="width:${Math.round(c.paid/D.flats.length*100)}%"></i></div></div>
   <div class="card"><div class="rows">${list.map(x=>`<button class="rw${String(x.f.no)===mine?" me":""}" onclick="flatSheet(${x.i})">${avatar(x.f,x.i)}
-    <span class="tx"><b>${esc(x.f.name)}${String(x.f.no)===mine?` <span class="chip info">${t("you")}</span>`:""}</b><small>${t("flat")} ${n(x.f.no)} · ${x.f.outstanding>0?t("outstanding")+" "+money(x.f.outstanding):t("paid")}</small></span>
+    <span class="tx"><b>${esc(x.f.name)}${String(x.f.no)===mine?` <span class="chip info">${t("you")}</span>`:""}</b><small>${t("flat")} ${n(x.f.no)}${monthDue(x.f,m)>0?" · "+t("due")+" "+money(monthDue(x.f,m)):""}</small></span>
     <span class="am">${chip(x)}</span></button>`).join("")}</div></div>`}
-function flatSheet(i){const D=S.data,f=D.flats[i],pend=pendingMonths(f);
+function flatSheet(i){const D=S.data,f=D.flats[i],cm=curMonth(),owe=monthDue(f,cm);
   sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)} · ${t("rate")} ${money(D.rate)}</p></div></div>
     <div class="kp" style="margin:16px 0 14px"><div class="k"><span>${t("totalPaid")}</span><b class="num">${money(f.total)}</b></div>
-      <div class="k ${f.outstanding>0?"bad":"good"}"><span>${f.outstanding<0?t("advance"):t("outstanding")}</span><b class="num">${money(Math.abs(f.outstanding))}</b></div></div>
+      <div class="k ${owe>0?"bad":"good"}"><span>${t("thisDue",{m:monF(cm)})}</span><b class="num">${money(owe)}</b></div></div>
     ${yearGrid(f)}
-    ${pend.length&&f.outstanding>0?`<p class="small muted" style="font-weight:600">${t("pendingMonths")}: ${pend.map(mon).join(", ")}</p>`:""}
-    ${String(f.no)===String(S.flat)&&f.outstanding>0?`<div style="height:6px"></div><button class="btn primary" onclick="paySheet()">${ic("wallet")}${t("payNow")}</button>`:""}`)}
+    ${String(f.no)===String(S.flat)&&owe>0?`<div style="height:6px"></div><button class="btn primary" onclick="paySheet()">${ic("wallet")}${t("payNow")}</button>`:""}`)}
 
 /* ---------------------------------------------------------------- notices */
 function notView(){const N=S.data.notices;return N.length?N.map(noticeCard).join(""):`<div class="card empty">${tile("bell","c3")}${t("noNotices")}</div>`}
@@ -625,8 +632,9 @@ function shareApp(){const url=location.origin+location.pathname+"#k="+S.pass,tex
 function sheetHead(icn,c,title,sub){return `<div class="sh">${tile(icn,c)}<div><h2>${title}</h2>${sub?`<p>${sub}</p>`:""}</div></div>`}
 function paySheet(){const D=S.data,f=me(),c=D.contact;
   if(!c.upi)return sheet(`${sheetHead("wallet","",t("payTitle"))}<p style="font-weight:500">${t("noUpi")}</p><button class="btn wa" onclick="contactCommittee()">${ic("chat")}${t("contact")}</button>`);
-  const opts=[];if(f.outstanding>0)opts.push([Math.round(f.outstanding),t("fullDue")]);
-  if(Math.round(f.outstanding)!==D.rate)opts.push([D.rate,t("oneMonth")]);
+  const owe=monthDue(f,curMonth()),opts=[];
+  if(owe>0)opts.push([owe,t("thisDue",{m:monF(curMonth())})]);
+  if(owe!==D.rate)opts.push([D.rate,t("oneMonth")]);
   S.payAmt=opts[0][0];
   sheet(`${sheetHead("wallet","",t("payTitle"),esc(f.name)+" · "+t("flat")+" "+n(f.no))}
     <div class="opts" id="payOpts">${opts.map((o,i)=>`<button class="opt${i===0?" active":""}" data-v="${o[0]}" onclick="setPay(${o[0]},this)"><span>${o[1]}</span><b class="num">${money(o[0])}</b></button>`).join("")}
