@@ -248,6 +248,12 @@ button.mc{width:100%;font:inherit}
 .payto b{display:block;font-size:16px;overflow-wrap:anywhere}
 .payto button{padding:10px 13px;border-radius:12px;background:var(--brandSoft);color:var(--brand);font-weight:800;font-size:13px;display:flex;gap:6px;align-items:center}
 .payto button .ic{width:16px;height:16px}
+.qrc{display:flex;gap:14px;align-items:center;padding:14px;border-radius:18px;background:var(--panel2);margin-bottom:16px}
+#payQr{width:132px;height:132px;flex-shrink:0;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--line)}
+#payQr svg{width:100%;height:100%;display:block}
+.qrc>div:last-child{display:grid;gap:5px;justify-items:start;min-width:0}
+.qrc b{font-size:14.5px;font-weight:800}
+.qrc small{color:var(--muted);font-size:12.5px;font-weight:500}
 .steps{margin:14px 0 4px;padding:0;list-style:none;display:grid;gap:11px;counter-reset:s}
 .steps li{display:flex;gap:12px;align-items:flex-start;font-weight:600}
 .steps li::before{counter-increment:s;content:counter(s);width:28px;height:28px;border-radius:10px;background:var(--brandSoft);color:var(--brand);font-weight:800;display:grid;place-items:center;flex-shrink:0;font-size:13px}
@@ -290,6 +296,7 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   latest:"नवीन सूचना",all:"सर्व पहा",insights:"महत्त्वाची निरीक्षणे",ytdIn:"या वर्षी जमा",ytdOut:"या वर्षी खर्च",
   totalDue:"एकूण थकबाकी",chart:"महिनावार जमा व खर्च",expDetail:"खर्चाचा तपशील",noExp:"या महिन्यात खर्च नोंदवलेला नाही.",
   total:"एकूण",cats:"वर्षभरात खर्च कुठे झाला",pending:"बाकी",you:"तुम्ही",noNotices:"अद्याप कोणतीही सूचना नाही.",
+  free:"शुल्क नाही",qrTitle:"QR स्कॅन करून भरा",qrHint:"दुसऱ्या मोबाईलवरील GPay / PhonePe / Paytm ने हा QR स्कॅन करा. रक्कम आपोआप भरलेली येते.",
   payOnline:"ऑनलाइन भरा",payOnlineS:"UPI, कार्ड, नेटबँकिंग. सुरक्षित पेमेंट पेज उघडेल; भरणा झाल्यावर तेथेच पावती मिळते.",
   important:"महत्त्वाचे",payMaint:"मेंटेनन्स भरा",payMaintS:"GPay, PhonePe, Paytm",payMaintO:"UPI, कार्ड, नेटबँकिंग",complaint:"तक्रार / विनंती नोंदवा",
   complaintS:"समितीला WhatsApp वर पाठवा",contact:"समितीशी संपर्क",contactS:"WhatsApp वर संदेश",changeFlat:"फ्लॅट बदला",
@@ -334,6 +341,7 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   latest:"Latest notice",all:"See all",insights:"Key observations",ytdIn:"Collected this year",ytdOut:"Spent this year",
   totalDue:"Total outstanding",chart:"Month-wise collection and expenses",expDetail:"Expense details",noExp:"No expenses recorded this month.",
   total:"Total",cats:"Where the money went this year",pending:"Pending",you:"You",noNotices:"No notices yet.",
+  free:"No charges",qrTitle:"Scan the QR to pay",qrHint:"Scan this QR with GPay / PhonePe / Paytm on another phone. The amount is already filled in.",
   payOnline:"Pay online",payOnlineS:"UPI, card, netbanking. Opens the secure payment page; you get the receipt there after paying.",
   important:"Important",payMaint:"Pay maintenance",payMaintS:"GPay, PhonePe, Paytm",payMaintO:"UPI, card, netbanking",complaint:"Send a complaint or request",
   complaintS:"Goes to the committee on WhatsApp",contact:"Contact the committee",contactS:"Message on WhatsApp",changeFlat:"Change flat",
@@ -522,7 +530,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v7 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v8 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats. A phone that has ever been on that flat keeps the
    right, so the committee can look at another flat and come back. Members choose once; a wrong
@@ -707,12 +715,13 @@ function paySheet(){const D=S.data,f=me(),c=D.contact;
     <p class="help">${t("payOnlineS")}</p>`:""}
     ${c.upi?`<div class="payto"><div><small>${t("upiId")}</small><b>${esc(c.upi)}</b><small>${esc(c.payee)}</small></div><button onclick="copyText(S.data.contact.upi)">${ic("copy")}${t("copy")}</button></div>
     <button class="btn${c.pay_url?"":" primary"}" onclick="openUpi()">${ic("wallet")}${t("openUpi")} · <span class="payLbl num">${money(S.payAmt)}</span></button>
-    <p class="help">${t("payHelp")}</p>`:""}
+    <p class="help">${t("payHelp")}</p>
+    <div class="qrc"><div id="payQr"></div><div><span class="chip good">${ic("check")}${t("free")}</span><b>${t("qrTitle")}</b><small>${t("qrHint")}</small></div></div>`:""}
     <button class="btn wa" onclick="informPaid()">${ic("chat")}${t("inform")}</button>
     <p class="help">${t("informHelp")}</p>`);
-  const first=document.querySelector("#sheet .payLbl");if(first)first.id="payLbl"}
+  const first=document.querySelector("#sheet .payLbl");if(first)first.id="payLbl";drawQr()}
 function setPay(v,el){S.payAmt=v>0?Math.round(v):0;document.querySelectorAll("#payOpts .opt").forEach(o=>o.classList.toggle("active",o===el));
-  document.querySelectorAll("#sheet .payLbl").forEach(x=>x.textContent=S.payAmt?money(S.payAmt):"₹")}
+  document.querySelectorAll("#sheet .payLbl").forEach(x=>x.textContent=S.payAmt?money(S.payAmt):"₹");drawQr()}
 /* The committee's online payment page (Razorpay Payment Page or similar). Razorpay pages accept
    the amount and the form fields in the address, so the member does not have to type them. */
 function onlineUrl(){const f=me();let u;try{u=new URL(S.data.contact.pay_url)}catch(e){return""}
@@ -721,9 +730,68 @@ function onlineUrl(){const f=me();let u;try{u=new URL(S.data.contact.pay_url)}ca
     u.searchParams.set("flat_no",String(f.no));u.searchParams.set("month",MON.enF[curMonth()]+" "+S.data.year)}
   return u.toString().replace(/\+/g,"%20")}
 function openOnline(){if(!S.payAmt)return toast(t("needAmt"));const u=onlineUrl();if(u)window.open(u,"_blank")}
-function openUpi(){if(!S.payAmt)return toast(t("needAmt"));const c=S.data.contact,f=me();
-  const q=new URLSearchParams({pa:c.upi,pn:c.payee,am:S.payAmt.toFixed(2),cu:"INR",tn:"Flat "+f.no+" maintenance"});
-  location.href="upi://pay?"+q.toString().replace(/\+/g,"%20")}
+function upiUrl(){const c=S.data.contact,f=me(),p={pa:c.upi,pn:c.payee};if(S.payAmt)p.am=S.payAmt.toFixed(2);p.cu="INR";p.tn="Flat "+f.no+" maintenance";
+  return "upi://pay?"+new URLSearchParams(p).toString().replace(/\+/g,"%20")}
+function openUpi(){if(!S.payAmt)return toast(t("needAmt"));location.href=upiUrl()}
+function drawQr(){const box=$("payQr");if(!box)return;const q=qrCode(upiUrl());if(!q){box.innerHTML="";return}
+  const n=q.modules.length,pad=4;let d="";q.modules.forEach((row,y)=>row.forEach((on,x)=>{if(on)d+=`M${x+pad} ${y+pad}h1v1h-1z`}));
+  box.innerHTML=`<svg viewBox="0 0 ${n+pad*2} ${n+pad*2}" shape-rendering="crispEdges" role="img" aria-label="UPI QR"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}
+
+/* ---------------------------------------------------------------- QR code (byte mode, error correction M) */
+const QR_ECC=[-1,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28];
+const QR_BLK=[-1,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49];
+function qrRaw(v){let r=(16*v+128)*v+64;if(v>=2){const a=Math.floor(v/7)+2;r-=(25*a-10)*a-55;if(v>=7)r-=36}return r}
+function qrCap(v){return Math.floor(qrRaw(v)/8)-QR_ECC[v]*QR_BLK[v]}
+function gfMul(x,y){let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x}return z}
+function rsDivisor(deg){const r=new Array(deg).fill(0);r[deg-1]=1;let root=1;
+  for(let i=0;i<deg;i++){for(let j=0;j<deg;j++){r[j]=gfMul(r[j],root);if(j+1<deg)r[j]^=r[j+1]}root=gfMul(root,2)}return r}
+function rsRemainder(data,div){const r=div.map(()=>0);for(const b of data){const f=b^r.shift();r.push(0);div.forEach((c,i)=>{r[i]^=gfMul(c,f)})}return r}
+function qrPenalty(M){const n=M.length;let res=0;
+  const add=(run,h)=>{if(h[0]===0)run+=n;h.pop();h.unshift(run)};
+  const count=h=>{const k=h[1],core=k>0&&h[2]===k&&h[3]===k*3&&h[4]===k&&h[5]===k;return (core&&h[0]>=k*4&&h[6]>=k?1:0)+(core&&h[6]>=k*4&&h[0]>=k?1:0)};
+  const line=get=>{let color=false,run=0;const h=[0,0,0,0,0,0,0];
+    for(let i=0;i<n;i++){const c=get(i);if(c===color){run++;if(run===5)res+=3;else if(run>5)res++}else{add(run,h);if(!color)res+=count(h)*40;color=c;run=1}}
+    if(color){add(run,h);run=0}run+=n;add(run,h);res+=count(h)*40};
+  for(let y=0;y<n;y++)line(x=>M[y][x]);
+  for(let x=0;x<n;x++)line(y=>M[y][x]);
+  for(let y=0;y<n-1;y++)for(let x=0;x<n-1;x++){const c=M[y][x];if(c===M[y][x+1]&&c===M[y+1][x]&&c===M[y+1][x+1])res+=3}
+  let dark=0;M.forEach(r=>r.forEach(c=>{if(c)dark++}));const total=n*n;
+  return res+(Math.ceil(Math.abs(dark*20-total*10)/total)-1)*10}
+/* returns {version, mask, modules[y][x]} or null when the text is too long */
+function qrCode(text){
+  const bytes=[...new TextEncoder().encode(text)];let v=1;
+  for(;;v++){if(v>40)return null;if(4+(v<10?8:16)+bytes.length*8<=qrCap(v)*8)break}
+  const cap=qrCap(v)*8,bits=[],put=(val,len)=>{for(let i=len-1;i>=0;i--)bits.push((val>>>i)&1)};
+  put(4,4);put(bytes.length,v<10?8:16);bytes.forEach(b=>put(b,8));
+  put(0,Math.min(4,cap-bits.length));put(0,(8-bits.length%8)%8);
+  for(let pad=0xEC;bits.length<cap;pad^=0xEC^0x11)put(pad,8);
+  const data=[];for(let i=0;i<bits.length;i+=8){let b=0;for(let j=0;j<8;j++)b=(b<<1)|bits[i+j];data.push(b)}
+  const nb=QR_BLK[v],el=QR_ECC[v],raw=Math.floor(qrRaw(v)/8),short=nb-raw%nb,sl=Math.floor(raw/nb),div=rsDivisor(el),blocks=[];
+  for(let i=0,k=0;i<nb;i++){const d=data.slice(k,k+sl-el+(i<short?0:1));k+=d.length;const e=rsRemainder(d,div);if(i<short)d.push(0);blocks.push(d.concat(e))}
+  const all=[];for(let i=0;i<blocks[0].length;i++)blocks.forEach((b,j)=>{if(i!==sl-el||j>=short)all.push(b[i])});
+  const n=v*4+17,M=Array.from({length:n},()=>new Array(n).fill(false)),F=Array.from({length:n},()=>new Array(n).fill(false));
+  const set=(x,y,d)=>{M[y][x]=d;F[y][x]=true};
+  for(let i=0;i<n;i++){set(6,i,i%2===0);set(i,6,i%2===0)}
+  const finder=(cx,cy)=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const d=Math.max(Math.abs(dx),Math.abs(dy)),x=cx+dx,y=cy+dy;if(x>=0&&x<n&&y>=0&&y<n)set(x,y,d!==2&&d!==4)}};
+  finder(3,3);finder(n-4,3);finder(3,n-4);
+  const pos=[];if(v>1){const na=Math.floor(v/7)+2,step=v===32?26:Math.ceil((v*4+4)/(na*2-2))*2;for(let p=n-7;pos.length<na-1;p-=step)pos.unshift(p);pos.unshift(6)}
+  const last=pos.length-1;
+  pos.forEach((x,i)=>pos.forEach((y,j)=>{if((i===0&&j===0)||(i===0&&j===last)||(i===last&&j===0))return;
+    for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)set(x+dx,y+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)}));
+  const format=mask=>{let rem=mask;for(let i=0;i<10;i++)rem=(rem<<1)^((rem>>>9)*0x537);const b=((mask<<10)|rem)^0x5412,bit=i=>((b>>>i)&1)!==0;
+    for(let i=0;i<=5;i++)set(8,i,bit(i));set(8,7,bit(6));set(8,8,bit(7));set(7,8,bit(8));for(let i=9;i<15;i++)set(14-i,8,bit(i));
+    for(let i=0;i<8;i++)set(n-1-i,8,bit(i));for(let i=8;i<15;i++)set(8,n-15+i,bit(i));set(8,n-8,true)};
+  format(0);
+  if(v>=7){let rem=v;for(let i=0;i<12;i++)rem=(rem<<1)^((rem>>>11)*0x1F25);const b=(v<<12)|rem;
+    for(let i=0;i<18;i++){const d=((b>>>i)&1)!==0,a=n-11+i%3,c=Math.floor(i/3);set(a,c,d);set(c,a,d)}}
+  let k=0;for(let right=n-1;right>=1;right-=2){if(right===6)right=5;
+    for(let vert=0;vert<n;vert++)for(let j=0;j<2;j++){const x=right-j,y=((right+1)&2)===0?n-1-vert:vert;
+      if(!F[y][x]&&k<all.length*8){M[y][x]=((all[k>>>3]>>>(7-(k&7)))&1)!==0;k++}}}
+  const MASK=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,
+    (x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+  const flip=m=>{for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(!F[y][x]&&MASK[m](x,y))M[y][x]=!M[y][x]};
+  let best=0,min=Infinity;for(let m=0;m<8;m++){flip(m);format(m);const p=qrPenalty(M);if(p<min){min=p;best=m}flip(m)}
+  flip(best);format(best);return {version:v,mask:best,modules:M}}
 function informPaid(){if(!S.payAmt)return toast(t("needAmt"));const f=me(),d=new Date();
   wa(`🏢 *${bname()}*\n💰 *${t("pHead")}*\n\n👤 ${f.name} (${t("flat")} ${n(f.no)})\n💵 ${t("amount")}: ${money(S.payAmt)}\n🗓 ${t("date")}: ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}\n\n${t("paidMsg")} 🙏`,S.data.contact.phone)}
 
