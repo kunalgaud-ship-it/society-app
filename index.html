@@ -290,7 +290,8 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   latest:"नवीन सूचना",all:"सर्व पहा",insights:"महत्त्वाची निरीक्षणे",ytdIn:"या वर्षी जमा",ytdOut:"या वर्षी खर्च",
   totalDue:"एकूण थकबाकी",chart:"महिनावार जमा व खर्च",expDetail:"खर्चाचा तपशील",noExp:"या महिन्यात खर्च नोंदवलेला नाही.",
   total:"एकूण",cats:"वर्षभरात खर्च कुठे झाला",pending:"बाकी",you:"तुम्ही",noNotices:"अद्याप कोणतीही सूचना नाही.",
-  important:"महत्त्वाचे",payMaint:"मेंटेनन्स भरा (UPI)",payMaintS:"GPay, PhonePe, Paytm",complaint:"तक्रार / विनंती नोंदवा",
+  payOnline:"ऑनलाइन भरा",payOnlineS:"UPI, कार्ड, नेटबँकिंग. सुरक्षित पेमेंट पेज उघडेल; भरणा झाल्यावर तेथेच पावती मिळते.",
+  important:"महत्त्वाचे",payMaint:"मेंटेनन्स भरा",payMaintS:"GPay, PhonePe, Paytm",payMaintO:"UPI, कार्ड, नेटबँकिंग",complaint:"तक्रार / विनंती नोंदवा",
   complaintS:"समितीला WhatsApp वर पाठवा",contact:"समितीशी संपर्क",contactS:"WhatsApp वर संदेश",changeFlat:"फ्लॅट बदला",
   language:"भाषा",languageS:"मराठी",theme:"थीम",themeL:"उजळ",themeD:"गडद",install:"ॲप मोबाईलवर बसवा",
   installS:"होम स्क्रीनवर आयकॉन",share:"कुटुंबातील सदस्याला ॲप पाठवा",shareS:"लिंक शेअर करा",refresh:"माहिती अपडेट करा",
@@ -333,7 +334,8 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   latest:"Latest notice",all:"See all",insights:"Key observations",ytdIn:"Collected this year",ytdOut:"Spent this year",
   totalDue:"Total outstanding",chart:"Month-wise collection and expenses",expDetail:"Expense details",noExp:"No expenses recorded this month.",
   total:"Total",cats:"Where the money went this year",pending:"Pending",you:"You",noNotices:"No notices yet.",
-  important:"Important",payMaint:"Pay maintenance (UPI)",payMaintS:"GPay, PhonePe, Paytm",complaint:"Send a complaint or request",
+  payOnline:"Pay online",payOnlineS:"UPI, card, netbanking. Opens the secure payment page; you get the receipt there after paying.",
+  important:"Important",payMaint:"Pay maintenance",payMaintS:"GPay, PhonePe, Paytm",payMaintO:"UPI, card, netbanking",complaint:"Send a complaint or request",
   complaintS:"Goes to the committee on WhatsApp",contact:"Contact the committee",contactS:"Message on WhatsApp",changeFlat:"Change flat",
   language:"Language",languageS:"English",theme:"Theme",themeL:"Light",themeD:"Dark",install:"Install app on phone",
   installS:"Icon on the home screen",share:"Share app with family",shareS:"Send the link",refresh:"Refresh data",
@@ -520,7 +522,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v6 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v7 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats. A phone that has ever been on that flat keeps the
    right, so the committee can look at another flat and come back. Members choose once; a wrong
@@ -670,7 +672,7 @@ function notView(){const N=S.data.notices;return N.length?N.map(noticeCard).join
 function moreView(){const f=me(),dark=document.documentElement.getAttribute("data-theme")==="dark";
   const item=(icn,c,title,sub,fn)=>`<button class="rw" onclick="${fn}">${tile(icn,c)}<span class="tx"><b>${title}</b>${sub?`<small>${sub}</small>`:""}</span><span class="go">${ic("next")}</span></button>`;
   return `<div class="card"><div class="rows">
-    ${item("wallet","",t("payMaint"),t("payMaintS"),"paySheet()")}
+    ${item("wallet","",t("payMaint"),t(S.data.contact.pay_url?"payMaintO":"payMaintS"),"paySheet()")}
     ${item("receipt","c5",t("receipts"),t("receiptsS"),"receiptsSheet()")}
     ${item("pen","c2",t("complaint"),t("complaintS"),"complaintSheet()")}
     ${item("list","c6",t("board"),t("boardS"),"boardSheet()")}
@@ -693,7 +695,7 @@ function shareApp(){const url=location.origin+location.pathname+"#k="+S.pass,tex
 /* ---------------------------------------------------------------- pay */
 function sheetHead(icn,c,title,sub){return `<div class="sh">${tile(icn,c)}<div><h2>${title}</h2>${sub?`<p>${sub}</p>`:""}</div></div>`}
 function paySheet(){const D=S.data,f=me(),c=D.contact;
-  if(!c.upi)return sheet(`${sheetHead("wallet","",t("payTitle"))}<p style="font-weight:500">${t("noUpi")}</p><button class="btn wa" onclick="contactCommittee()">${ic("chat")}${t("contact")}</button>`);
+  if(!c.upi&&!c.pay_url)return sheet(`${sheetHead("wallet","",t("payTitle"))}<p style="font-weight:500">${t("noUpi")}</p><button class="btn wa" onclick="contactCommittee()">${ic("chat")}${t("contact")}</button>`);
   const owe=monthDue(f,curMonth()),opts=[];
   if(owe>0)opts.push([owe,t("thisDue",{m:monF(curMonth())})]);
   if(owe!==D.rate)opts.push([D.rate,t("oneMonth")]);
@@ -701,12 +703,24 @@ function paySheet(){const D=S.data,f=me(),c=D.contact;
   sheet(`${sheetHead("wallet","",t("payTitle"),esc(f.name)+" · "+t("flat")+" "+n(f.no))}
     <div class="opts" id="payOpts">${opts.map((o,i)=>`<button class="opt${i===0?" active":""}" data-v="${o[0]}" onclick="setPay(${o[0]},this)"><span>${o[1]}</span><b class="num">${money(o[0])}</b></button>`).join("")}
       <div class="opt" id="payOtherRow"><span>${t("other")}</span><input id="payOther" type="number" inputmode="numeric" min="1" placeholder="₹" oninput="setPay(+this.value,this.parentNode)" onfocus="setPay(+this.value,this.parentNode)"></div></div>
-    <div class="payto"><div><small>${t("upiId")}</small><b>${esc(c.upi)}</b><small>${esc(c.payee)}</small></div><button onclick="copyText(S.data.contact.upi)">${ic("copy")}${t("copy")}</button></div>
-    <button class="btn primary" onclick="openUpi()">${ic("wallet")}${t("openUpi")} · <span id="payLbl" class="num">${money(S.payAmt)}</span></button>
-    <p class="help">${t("payHelp")}</p>
+    ${c.pay_url?`<button class="btn primary" id="payOnline" onclick="openOnline()">${ic("cash")}${t("payOnline")} · <span class="payLbl num">${money(S.payAmt)}</span></button>
+    <p class="help">${t("payOnlineS")}</p>`:""}
+    ${c.upi?`<div class="payto"><div><small>${t("upiId")}</small><b>${esc(c.upi)}</b><small>${esc(c.payee)}</small></div><button onclick="copyText(S.data.contact.upi)">${ic("copy")}${t("copy")}</button></div>
+    <button class="btn${c.pay_url?"":" primary"}" onclick="openUpi()">${ic("wallet")}${t("openUpi")} · <span class="payLbl num">${money(S.payAmt)}</span></button>
+    <p class="help">${t("payHelp")}</p>`:""}
     <button class="btn wa" onclick="informPaid()">${ic("chat")}${t("inform")}</button>
-    <p class="help">${t("informHelp")}</p>`)}
-function setPay(v,el){S.payAmt=v>0?Math.round(v):0;document.querySelectorAll("#payOpts .opt").forEach(o=>o.classList.toggle("active",o===el));$("payLbl").textContent=S.payAmt?money(S.payAmt):"₹"}
+    <p class="help">${t("informHelp")}</p>`);
+  const first=document.querySelector("#sheet .payLbl");if(first)first.id="payLbl"}
+function setPay(v,el){S.payAmt=v>0?Math.round(v):0;document.querySelectorAll("#payOpts .opt").forEach(o=>o.classList.toggle("active",o===el));
+  document.querySelectorAll("#sheet .payLbl").forEach(x=>x.textContent=S.payAmt?money(S.payAmt):"₹")}
+/* The committee's online payment page (Razorpay Payment Page or similar). Razorpay pages accept
+   the amount and the form fields in the address, so the member does not have to type them. */
+function onlineUrl(){const f=me();let u;try{u=new URL(S.data.contact.pay_url)}catch(e){return""}
+  if(/(^|\.)razorpay\.com$|(^|\.)rzp\.io$/.test(u.hostname)){
+    u.searchParams.set("amount",String(S.payAmt));u.searchParams.set("full_name",f.name);
+    u.searchParams.set("flat_no",String(f.no));u.searchParams.set("month",MON.enF[curMonth()]+" "+S.data.year)}
+  return u.toString().replace(/\+/g,"%20")}
+function openOnline(){if(!S.payAmt)return toast(t("needAmt"));const u=onlineUrl();if(u)window.open(u,"_blank")}
 function openUpi(){if(!S.payAmt)return toast(t("needAmt"));const c=S.data.contact,f=me();
   const q=new URLSearchParams({pa:c.upi,pn:c.payee,am:S.payAmt.toFixed(2),cu:"INR",tn:"Flat "+f.no+" maintenance"});
   location.href="upi://pay?"+q.toString().replace(/\+/g,"%20")}
