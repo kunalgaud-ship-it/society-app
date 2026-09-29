@@ -109,6 +109,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0
 .mc.partial{background:var(--warnSoft)} .mc.partial b{color:var(--warn)}
 .mc.due{background:var(--badSoft)} .mc.due b{color:var(--bad)}
 .mc.future b,.mc.none b{color:var(--muted);font-weight:500}
+button.mc{width:100%;font:inherit}
 .mc.now{border-color:var(--brand)}
 .mc.now::after{content:"";position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--brand)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:13px;font-weight:600}
@@ -198,6 +199,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0
 .notice.pin{padding-left:21px}
 .notice.pin::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,var(--gold),var(--brand3))}
 .notice .chip{margin-bottom:8px}
+.cb{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;flex-shrink:0;background:var(--brandSoft);color:var(--brand);text-decoration:none}
+.cb.w{background:rgba(31,190,92,.14);color:#15a34a}
+.rc{position:relative;text-align:center;border-radius:22px;padding:22px 18px 16px;margin-bottom:16px;background:var(--panel2);border:1.5px dashed var(--line);display:grid;justify-items:center;gap:4px}
+.rc img{width:56px;height:56px;border-radius:17px;box-shadow:0 12px 26px -12px rgba(30,27,75,.8);margin-bottom:6px}
+.rc>b{font-size:16px;font-weight:800}
+.rc>span{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
+.rc .amt{font-size:36px;font-weight:800;letter-spacing:-.02em;margin:6px 0 4px}
+.rc dl{width:100%;margin:14px 0 0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 14px;text-align:left;border-top:1.5px dashed var(--line);padding-top:14px}
+.rc dt{color:var(--muted);font-size:13px;font-weight:600}
+.rc dd{margin:0;text-align:right;font-weight:700;font-size:14px;overflow-wrap:anywhere}
+.rc p{margin:14px 0 0;font-size:11.5px;color:var(--muted);font-weight:500}
 .empty{padding:30px 10px;text-align:center;color:var(--muted);display:grid;gap:10px;justify-items:center;font-weight:600}
 .empty .t{width:54px;height:54px;border-radius:18px}.empty .t .ic{width:26px;height:26px}
 /* buttons */
@@ -299,8 +311,17 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   cHead:"तक्रार / विनंती",pHead:"मेंटेनन्स भरणा",amount:"रक्कम",date:"दिनांक",paidMsg:"UPI ने भरणा केला आहे. स्क्रीनशॉट सोबत पाठवत आहे.",
   hi:"नमस्कार, मला सोसायटीबद्दल माहिती हवी आहे.",shareTxt:"सोसायटी ॲप उघडण्यासाठी ही लिंक वापरा:",
   noStore:"हा ब्राउझर माहिती जतन करत नाही (Private / Incognito मोड). समितीने पाठवलेली लिंक Chrome च्या साध्या टॅबमध्ये उघडा.",
-  qPay:"भरणा",qComp:"तक्रार",qNot:"सूचना",qCon:"संपर्क",months:"महिने",
-  thisDue:"{m} ची थकबाकी",monthPaid:"या महिन्याचा भरणा पूर्ण. धन्यवाद!",partPaid:"{a} जमा झाले, उरलेली रक्कम बाकी"},
+  qPay:"भरणा",qComp:"तक्रार",qNot:"सूचना",qCon:"समिती",qRcpt:"पावती",qBoard:"स्थिती",qDir:"संपर्क",qShare:"शेअर",months:"महिने",
+  thisDue:"{m} ची थकबाकी",monthPaid:"या महिन्याचा भरणा पूर्ण. धन्यवाद!",partPaid:"{a} जमा झाले, उरलेली रक्कम बाकी",
+  dueBy:"शेवटची तारीख: {d}",dueToday:"आज शेवटची तारीख आहे",overdue:"शेवटची तारीख उलटली ({n} दिवस झाले)",
+  receipt:"पावती",receipts:"माझ्या पावत्या",receiptsS:"भरलेल्या महिन्यांच्या पावत्या",rcptFor:"मेंटेनन्स",rcptNo:"पावती क्र.",
+  rcptNote:"समितीच्या नोंदीनुसार. ही संगणकाने तयार केलेली पावती आहे.",rcptShare:"पावती शेअर करा",noRcpt:"अद्याप भरणा नोंदवलेला नाही.",
+  member:"सदस्य",month:"महिना",back:"मागे",
+  contacts:"महत्त्वाचे संपर्क",contactsS:"फोन किंवा WhatsApp करा",noContacts:"समितीने अद्याप संपर्क जोडलेले नाहीत.",
+  board:"तक्रारींची स्थिती",boardS:"समितीने नोंदवलेल्या तक्रारी",noBoard:"सध्या कोणतीही तक्रार नोंदवलेली नाही.",
+  stopen:"नोंदवली",stprogress:"काम सुरू",stdone:"पूर्ण",common:"सामायिक जागा",
+  inDays:"{n} दिवसांनी",today:"आज",tomorrow:"उद्या",
+  cSent:"तक्रार WhatsApp वर पाठवा. समितीने नोंद केल्यावर स्थिती ॲपमध्ये दिसेल."},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
   offline:"No internet. Showing the last saved data.",hello:"Hello",flat:"Flat",outstanding:"Outstanding",
   allPaid:"All dues cleared. Thank you!",advance:"Paid in advance",pendingMonths:"Pending months",payNow:"Pay now",details:"Details",
@@ -330,8 +351,17 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   cHead:"Complaint / request",pHead:"Maintenance payment",amount:"Amount",date:"Date",paidMsg:"Paid by UPI. Sending the screenshot with this message.",
   hi:"Hello, I need some information about the society.",shareTxt:"Use this link to open the society app:",
   noStore:"This browser does not keep saved data (Private / Incognito mode). Open the committee's link in a normal Chrome tab.",
-  qPay:"Pay",qComp:"Complaint",qNot:"Notices",qCon:"Contact",months:"months",
-  thisDue:"{m} outstanding",monthPaid:"This month is paid. Thank you!",partPaid:"{a} received, the rest is pending"}
+  qPay:"Pay",qComp:"Complaint",qNot:"Notices",qCon:"Committee",qRcpt:"Receipts",qBoard:"Status",qDir:"Contacts",qShare:"Share",months:"months",
+  thisDue:"{m} outstanding",monthPaid:"This month is paid. Thank you!",partPaid:"{a} received, the rest is pending",
+  dueBy:"Pay by {d}",dueToday:"Due today",overdue:"Due date passed ({n} days ago)",
+  receipt:"Receipt",receipts:"My receipts",receiptsS:"Receipts for the months you paid",rcptFor:"Maintenance",rcptNo:"Receipt no.",
+  rcptNote:"As recorded by the committee. This is a computer-generated receipt.",rcptShare:"Share receipt",noRcpt:"No payments recorded yet.",
+  member:"Member",month:"Month",back:"Back",
+  contacts:"Important contacts",contactsS:"Call or WhatsApp",noContacts:"The committee has not added contacts yet.",
+  board:"Complaint status",boardS:"Complaints noted by the committee",noBoard:"No complaints noted right now.",
+  stopen:"Noted",stprogress:"Work started",stdone:"Done",common:"Common area",
+  inDays:"in {n} days",today:"Today",tomorrow:"Tomorrow",
+  cSent:"Send the complaint on WhatsApp. Its status appears in the app once the committee notes it."}
 };
 
 /* ---------------------------------------------------------------- icons (inline, no downloads) */
@@ -372,7 +402,9 @@ const I={
   cam:'<rect x="3" y="7" width="12" height="10" rx="2.500"/><path d="M15 11l6-3v8l-6-3"/>',
   wrench:'<path d="M14.700 6.300a1 1 0 0 0 0 1.400l1.600 1.600a1 1 0 0 0 1.400 0l3.770-3.770a6 6 0 0 1-7.940 7.940l-6.910 6.910a2.120 2.120 0 0 1-3-3l6.910-6.910a6 6 0 0 1 7.940-7.940z"/>',
   cash:'<rect x="2.500" y="6" width="19" height="12" rx="2.500"/><circle cx="12" cy="12" r="2.500"/>',
-  box:'<path d="M3.500 8 12 3.500 20.500 8v8L12 20.500 3.500 16zM3.500 8 12 12.500 20.500 8M12 12.500v8"/>'
+  box:'<path d="M3.500 8 12 3.500 20.500 8v8L12 20.500 3.500 16zM3.500 8 12 12.500 20.500 8M12 12.500v8"/>',
+  call:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="3"/>'
 };
 const CAT_IC={sweeper:"user",electricity:"bolt",cctv:"cam",water:"drop",motor:"wrench",cleaning:"spark",cash:"cash",other:"box"};
 function ic(name){return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name]||""}</svg>`}
@@ -482,7 +514,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v4 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v5 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 function pickScreen(){hideTabs();
   $("app").innerHTML=`<div class="center" style="place-items:start center"><div class="box"><img class="logo" src="icon-192.png" alt=""><h1>${t("pickTitle")}</h1><p>${t("pickHint")}</p>
@@ -514,11 +546,18 @@ async function refresh(){const b=$("refBtn");if(b)b.classList.add("spin");await 
 function lockApp(){S.pass="";S.linkKey="";S.data=null;LS.del("pass");keepLink();lockScreen("")}
 
 /* ---------------------------------------------------------------- shared pieces */
-function yearGrid(f){const cm=curMonth();
-  return `<div class="yg">${f.paid.map((v,m)=>{const s=status(f,m);
-    return `<div class="mc ${s}${m===cm?" now":""}"><small>${mon(m)}</small><b class="num">${v>0?money(v):s==="due"?t("due"):s==="adj"?"✓":"—"}</b></div>`}).join("")}</div>
+/* in the member's own grid a paid month opens its receipt */
+function yearGrid(f){const cm=curMonth(),own=String(f.no)===String(S.flat);
+  return `<div class="yg">${f.paid.map((v,m)=>{const s=status(f,m),tag=own&&v>0?"button":"div";
+    return `<${tag} class="mc ${s}${m===cm?" now":""}"${tag==="button"?` onclick="receiptSheet(${m})"`:""}><small>${mon(m)}</small><b class="num">${v>0?money(v):s==="due"?t("due"):s==="adj"?"✓":"—"}</b></${tag}>`}).join("")}</div>
   <div class="legend"><span><i style="background:var(--good)"></i>${t("paid")}</span><span><i style="background:var(--bad)"></i>${mon(cm)} ${t("due")}</span></div>`}
-function noticeBody(x){return `${x.pinned?`<span class="chip warn">${ic("pin")}${t("important")}</span>`:""}<div class="hd"><b>${esc(x.title)}</b><small>${fmtDate(x.date)}</small></div>${x.body?`<div class="bd">${esc(x.body)}</div>`:""}`}
+function daysTo(iso){const p=iso.split("-");return Math.round((new Date(+p[0],+p[1]-1,+p[2])-new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()))/864e5)}
+function eventChip(x){if(!x.event)return"";const d=daysTo(x.event);if(d<0)return"";
+  return `<span class="chip info">${ic("cal")}${fmtDate(x.event)} · ${d===0?t("today"):d===1?t("tomorrow"):t("inDays",{n:n(d)})}</span>`}
+function dueLine(){const d=S.data.due_day,day=NOW.getDate();if(!d||S.data.year!==NOW.getFullYear())return"";
+  return day<d?t("dueBy",{d:n(d)+" "+mon(curMonth())}):day===d?t("dueToday"):t("overdue",{n:n(day-d)})}
+function noticeBody(x){const chips=(x.pinned?`<span class="chip warn">${ic("pin")}${t("important")}</span>`:"")+eventChip(x);
+  return `${chips?`<div class="chips" style="margin-bottom:8px;white-space:normal">${chips}</div>`:""}<div class="hd"><b>${esc(x.title)}</b><small>${fmtDate(x.date)}</small></div>${x.body?`<div class="bd">${esc(x.body)}</div>`:""}`}
 function noticeCard(x){return `<div class="card notice${x.pinned?" pin":""}">${noticeBody(x)}</div>`}
 /* last month worth showing: the current one, or later if the sheet already has figures there */
 function lastMonth(){let last=curMonth();
@@ -539,15 +578,17 @@ function homeView(){const D=S.data,f=me(),cm=curMonth(),mo=D.months[cm],c=monthC
   const due=dueTo(),owe=monthDue(f,cm);
   let done=0;for(let m=0;m<due;m++){const s=status(f,m);if(s==="paid"||s==="adj")done++}
   const st=owe>0
-    ?`<div class="lbl">${t("thisDue",{m:monF(cm)})}</div><div class="big num" data-count="${owe}">${money(owe)}</div><div class="sub">${f.paid[cm]>0?t("partPaid",{a:money(f.paid[cm])}):t("rate")+": "+money(D.rate)}</div>`
+    ?`<div class="lbl">${t("thisDue",{m:monF(cm)})}</div><div class="big num" data-count="${owe}">${money(owe)}</div><div class="sub">${f.paid[cm]>0?t("partPaid",{a:money(f.paid[cm])}):dueLine()||t("rate")+": "+money(D.rate)}</div>`
     :`<div class="lbl">${t("thisDue",{m:monF(cm)})}</div><div class="big num">${money(0)}</div><div class="sub">${t("monthPaid")}</div>`;
   const showInstall=!STANDALONE&&!LS.get("noInstall",false);
   const top=D.notices[0];
   return `${showInstall?`<div class="banner info">${tile("phone","c6")}<span class="msg">${t("instBanner")}</span><button class="go" onclick="installSheet()">${t("instNow")}</button><button class="x" onclick="LS.set('noInstall',true);render()" aria-label="close">${ic("x")}</button></div>`:""}
   <div class="hero"><div class="hrow"><div><div class="who">${t("hello")} 🙏</div><b class="nm">${esc(f.name)}</b><span class="tag">${t("flat")} ${n(f.no)}</span></div>${ring(done,due,t("months"))}</div>${st}
     <div class="acts">${owe>0?`<button class="main" onclick="paySheet()">${ic("wallet")}${t("payNow")}</button>`:""}<button onclick="flatSheet(${D.flats.indexOf(f)})">${ic("receipt")}${t("details")}</button></div></div>
-  <div class="qa"><button onclick="paySheet()">${tile("wallet")}${t("qPay")}</button><button onclick="complaintSheet()">${tile("pen","c2")}${t("qComp")}</button>
-    <button onclick="go('not')">${tile("bell","c3")}${t("qNot")}${unseen()?'<span class="dot"></span>':""}</button><button onclick="contactCommittee()">${tile("chat","c4")}${t("qCon")}</button></div>
+  <div class="qa"><button onclick="paySheet()">${tile("wallet")}${t("qPay")}</button><button onclick="receiptsSheet()">${tile("receipt","c5")}${t("qRcpt")}</button>
+    <button onclick="complaintSheet()">${tile("pen","c2")}${t("qComp")}</button><button onclick="boardSheet()">${tile("list","c6")}${t("qBoard")}${openMine()?'<span class="dot"></span>':""}</button>
+    <button onclick="go('not')">${tile("bell","c3")}${t("qNot")}${unseen()?'<span class="dot"></span>':""}</button><button onclick="contactsSheet()">${tile("call","c4")}${t("qDir")}</button>
+    <button onclick="contactCommittee()">${tile("chat","c4")}${t("qCon")}</button><button onclick="shareApp()">${tile("share","c7")}${t("qShare")}</button></div>
   ${top?`<div class="card notice${top.pinned?" pin":""}"><h3>${tile("bell","c3","sm")}${t("latest")}<span class="sp"></span><button onclick="go('not')">${t("all")}${ic("next")}</button></h3>${noticeBody(top)}</div>`:""}
   <div class="card"><h3>${tile("cal","","sm")}${t("myYear",{y:n(D.year)})}</h3>${yearGrid(f)}</div>
   <div class="card"><h3>${tile("bank","c5","sm")}${t("society")}<span class="sp"></span><button onclick="go('acc')">${t("details")}${ic("next")}</button></h3>
@@ -613,7 +654,10 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
   const item=(icn,c,title,sub,fn)=>`<button class="rw" onclick="${fn}">${tile(icn,c)}<span class="tx"><b>${title}</b>${sub?`<small>${sub}</small>`:""}</span><span class="go">${ic("next")}</span></button>`;
   return `<div class="card"><div class="rows">
     ${item("wallet","",t("payMaint"),t("payMaintS"),"paySheet()")}
+    ${item("receipt","c5",t("receipts"),t("receiptsS"),"receiptsSheet()")}
     ${item("pen","c2",t("complaint"),t("complaintS"),"complaintSheet()")}
+    ${item("list","c6",t("board"),t("boardS"),"boardSheet()")}
+    ${item("call","c4",t("contacts"),t("contactsS"),"contactsSheet()")}
     ${item("chat","c4",t("contact"),t("contactS"),"contactCommittee()")}</div></div>
   <div class="card"><div class="rows">
     ${item("home","c5",t("changeFlat"),esc(f.name)+" · "+t("flat")+" "+n(f.no),"pickScreen()")}
@@ -658,7 +702,45 @@ function complaintSheet(){const kinds=["cWater","cLight","cClean","cPark","cCctv
     <label>${t("message")}<textarea id="cText" rows="4" maxlength="800" placeholder="${t("cPh")}"></textarea></label>
     <div style="height:16px"></div><button class="btn wa" onclick="sendComplaint()">${ic("chat")}${t("send")}</button>`)}
 function sendComplaint(){const txt=$("cText").value.trim();if(!txt)return toast(t("needMsg"));const f=me();
-  wa(`🏢 *${bname()}*\n📝 *${t("cHead")}*\n\n👤 ${f.name} (${t("flat")} ${n(f.no)})\n🏷 ${t("type")}: ${$("cType").value}\n\n${txt}`,S.data.contact.phone);closeSheet()}
+  wa(`🏢 *${bname()}*\n📝 *${t("cHead")}*\n\n👤 ${f.name} (${t("flat")} ${n(f.no)})\n🏷 ${t("type")}: ${$("cType").value}\n\n${txt}`,S.data.contact.phone);closeSheet();toast(t("cSent"))}
+
+/* ---------------------------------------------------------------- complaint board (kept by the committee) */
+function openMine(){return (S.data.complaints||[]).some(x=>x.status!=="done"&&String(x.flat)===String(S.flat))}
+function boardSheet(){const B=S.data.complaints||[],cls={open:"bad",progress:"warn",done:"good"},icn={open:"alert",progress:"clock",done:"check"};
+  sheet(`${sheetHead("list","c6",t("board"),t("boardS"))}<div style="height:8px"></div>
+    ${B.length?`<div class="rows">${B.map(x=>{const s=cls[x.status]?x.status:"open";
+      return `<div class="rw${String(x.flat)===String(S.flat)?" me":""}" style="align-items:flex-start"><span class="ct" style="background:var(--${cls[s]}Soft);color:var(--${cls[s]})">${ic(icn[s])}</span>
+        <span class="tx"><b style="white-space:normal">${esc(x.title)}</b><small>${x.flat?t("flat")+" "+n(esc(x.flat)):t("common")} · ${fmtDate(x.date)}</small>${x.note?`<small style="display:block;margin-top:3px;color:var(--text)">${esc(x.note)}</small>`:""}</span>
+        <span class="chip ${cls[s]}">${t("st"+s)}</span></div>`}).join("")}</div>`
+      :`<div class="empty">${tile("list","c6")}${t("noBoard")}</div>`}
+    <div style="height:12px"></div><button class="btn" onclick="complaintSheet()">${ic("pen")}${t("complaint")}</button>`)}
+
+/* ---------------------------------------------------------------- contacts */
+function contactsSheet(){const C=S.data.contacts||[];
+  sheet(`${sheetHead("call","c4",t("contacts"),t("contactsS"))}<div style="height:8px"></div>
+    ${C.length?`<div class="rows">${C.map((c,i)=>{const ph=String(c.phone).replace(/\D/g,"");
+      return `<div class="rw"><span class="av" style="background:${AV[i%AV.length]}">${esc(initials(c.name))}</span><span class="tx"><b>${esc(c.name)}</b><small>${esc(c.role||"")}${c.role?" · ":""}${esc(ph.replace(/^91(?=\d{10}$)/,""))}</small></span>
+        <a class="cb" href="tel:+${ph}" aria-label="call">${ic("call")}</a><a class="cb w" href="https://wa.me/${ph}" target="_blank" rel="noopener" aria-label="WhatsApp">${ic("chat")}</a></div>`}).join("")}</div>`
+      :`<div class="empty">${tile("call","c4")}${t("noContacts")}</div>`}`)}
+
+/* ---------------------------------------------------------------- receipts */
+function receiptNo(f,m){return "OGR/"+S.data.year+"/"+String(m+1).padStart(2,"0")+"/"+String(f.no).padStart(2,"0")}
+function receiptsSheet(){const f=me(),P=f.paid.map((v,m)=>({v,m})).filter(x=>x.v>0).reverse();
+  sheet(`${sheetHead("receipt","c5",t("receipts"),esc(f.name)+" · "+t("flat")+" "+n(f.no))}<div style="height:8px"></div>
+    ${P.length?`<div class="rows">${P.map(x=>`<button class="rw" onclick="receiptSheet(${x.m})"><span class="ct" style="background:var(--goodSoft);color:var(--good)">${ic("check")}</span>
+      <span class="tx"><b>${monF(x.m)} ${n(S.data.year)}</b><small>${receiptNo(f,x.m)}</small></span><span class="am num">${money(x.v)}</span><span class="go">${ic("next")}</span></button>`).join("")}</div>`
+      :`<div class="empty">${tile("receipt","c5")}${t("noRcpt")}</div>`}`)}
+function receiptSheet(m){const f=me(),v=f.paid[m];if(!(v>0))return;
+  sheet(`<div class="rc"><img src="icon-192.png" alt=""><b>${esc(bname())}</b><span>${t("receipt")}</span>
+      <div class="amt num">${money(v)}</div><span class="chip good">${ic("check")}${t("paid")}</span>
+      <dl><dt>${t("rcptNo")}</dt><dd>${receiptNo(f,m)}</dd><dt>${t("member")}</dt><dd>${esc(f.name)}</dd><dt>${t("flat")}</dt><dd>${n(f.no)}</dd>
+        <dt>${t("month")}</dt><dd>${monF(m)} ${n(S.data.year)}</dd><dt>${t("rcptFor")}</dt><dd>${money(v)}</dd></dl>
+      <p>${t("rcptNote")}</p></div>
+    <button class="btn wa" onclick="shareReceipt(${m})">${ic("share")}${t("rcptShare")}</button>
+    <div style="height:10px"></div><button class="btn" onclick="receiptsSheet()">${t("receipts")}</button>`)}
+function receiptText(m){const f=me();
+  return `🧾 *${t("receipt")}*\n🏢 *${bname()}*\n━━━━━━━━━━━━━━━━\n${t("rcptNo")}: ${receiptNo(f,m)}\n👤 ${t("member")}: ${f.name} (${t("flat")} ${n(f.no)})\n📅 ${t("month")}: ${monF(m)} ${n(S.data.year)}\n💰 ${t("amount")}: ${money(f.paid[m])}\n━━━━━━━━━━━━━━━━\n${t("rcptNote")}`}
+function shareReceipt(m){const text=receiptText(m);if(navigator.share)navigator.share({text}).catch(()=>{});else wa(text,"")}
 
 /* ---------------------------------------------------------------- install */
 addEventListener("beforeinstallprompt",e=>{e.preventDefault();S.installEvt=e});
