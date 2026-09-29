@@ -2,7 +2,7 @@
    App files are fetched from the network first (so updates arrive at once) and fall back
    to the saved copy when offline. data.json is not handled here - the page keeps its own
    last copy. */
-const CACHE = "society-app-v1";
+const CACHE = "society-app-v2";
 const SHELL = ["./", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
