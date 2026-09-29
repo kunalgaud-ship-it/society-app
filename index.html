@@ -10,7 +10,6 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Om Gurudev">
-<link rel="manifest" href="manifest.webmanifest" id="manifestLink">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
@@ -223,7 +222,8 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   instNow:"आता बसवा",instBanner:"ॲप होम स्क्रीनवर बसवा",fatal:"माहिती लोड करता आली नाही. इंटरनेट सुरू करून पुन्हा प्रयत्न करा.",
   insecure:"हे ॲप फक्त https लिंकवर चालते. समितीने पाठवलेली लिंक उघडा.",retry:"पुन्हा प्रयत्न करा",
   cHead:"तक्रार / विनंती",pHead:"मेंटेनन्स भरणा",amount:"रक्कम",date:"दिनांक",paidMsg:"UPI ने भरणा केला आहे. स्क्रीनशॉट सोबत पाठवत आहे.",
-  hi:"नमस्कार, मला सोसायटीबद्दल माहिती हवी आहे.",shareTxt:"सोसायटी ॲप उघडण्यासाठी ही लिंक वापरा:"},
+  hi:"नमस्कार, मला सोसायटीबद्दल माहिती हवी आहे.",shareTxt:"सोसायटी ॲप उघडण्यासाठी ही लिंक वापरा:",
+  noStore:"हा ब्राउझर माहिती जतन करत नाही (Private / Incognito मोड). समितीने पाठवलेली लिंक Chrome च्या साध्या टॅबमध्ये उघडा."},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
   offline:"No internet. Showing the last saved data.",hello:"Hello",flat:"Flat",outstanding:"Outstanding",
   allPaid:"All dues cleared. Thank you!",advance:"Paid in advance",pendingMonths:"Pending months",payNow:"Pay now",details:"Details",
@@ -251,7 +251,8 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   instNow:"Install now",instBanner:"Install the app on your home screen",fatal:"Could not load the data. Turn on the internet and try again.",
   insecure:"This app only works on its https link. Open the link sent by the committee.",retry:"Try again",
   cHead:"Complaint / request",pHead:"Maintenance payment",amount:"Amount",date:"Date",paidMsg:"Paid by UPI. Sending the screenshot with this message.",
-  hi:"Hello, I need some information about the society.",shareTxt:"Use this link to open the society app:"}
+  hi:"Hello, I need some information about the society.",shareTxt:"Use this link to open the society app:",
+  noStore:"This browser does not keep saved data (Private / Incognito mode). Open the committee's link in a normal Chrome tab."}
 };
 
 /* ---------------------------------------------------------------- state & helpers */
@@ -265,8 +266,11 @@ const TAB_ICON={home:"🏠",acc:"📊",mem:"👥",not:"📢",more:"☰"};
 const IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 const STANDALONE=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 const NOW=new Date();
-const S={lang:LS.get("lang","mr"),flat:LS.get("flat",null),pass:LS.get("pass",""),tab:"home",data:null,enc:null,
+const STORE_OK=(()=>{try{localStorage.setItem("soc.t","1");localStorage.removeItem("soc.t");return true}catch(e){return false}})();
+const S={lang:LS.get("lang","mr"),flat:LS.get("flat",null),pass:LS.get("pass",""),linkKey:"",tab:"home",data:null,enc:null,
   offline:false,accMonth:null,memMonth:null,payAmt:0,installEvt:null,loadedAt:0};
+/* iPhone saves the page address (with the key) as the home-screen icon only when there is no manifest */
+if(!IOS){const ml=document.createElement("link");ml.rel="manifest";ml.href="manifest.webmanifest";document.head.appendChild(ml)}
 const normPass=p=>String(p||"").replace(/[\s\-]/g,"").toUpperCase();
 function t(k,v){let s=T[S.lang][k]??T.en[k]??k;if(v)for(const x in v)s=s.replace("{"+x+"}",v[x]);return s}
 function n(x){const s=String(x);return S.lang==="mr"?s.replace(/\d/g,d=>"०१२३४५६७८९"[d]):s}
@@ -308,15 +312,12 @@ async function decrypt(enc,pass){
 
 function readLink(){
   const h=new URLSearchParams(location.hash.slice(1));
-  if(h.get("k")){S.pass=normPass(h.get("k"));LS.set("pass",S.pass)}
+  if(h.get("k"))S.linkKey=normPass(h.get("k"));
   if(h.get("flat")&&S.flat===null){S.flat=h.get("flat");LS.set("flat",S.flat)}
-  if(TABS.includes(h.get("tab")))S.tab=h.get("tab");
-  keepLink()}
-/* iPhone keeps a separate storage for home-screen apps, so the key stays in the address until
-   the app is added to the home screen. Everywhere else the key is removed from the address. */
-function keepLink(){try{
-  if(IOS&&!STANDALONE){const ml=$("manifestLink");if(ml)ml.remove();if(S.pass)history.replaceState(null,"","#k="+S.pass)}
-  else if(location.hash)history.replaceState(null,"",location.pathname+location.search)}catch(e){}}
+  if(TABS.includes(h.get("tab")))S.tab=h.get("tab")}
+/* The working key stays in the address, so a bookmark, a home-screen shortcut or "open in
+   browser" still opens the app on phones that do not keep saved data. */
+function keepLink(){try{history.replaceState(null,"",location.pathname+location.search+(S.pass&&S.data?"#k="+S.pass:""))}catch(e){}}
 
 async function loadData(){
   if(!window.crypto||!crypto.subtle)return fatal("insecure");
@@ -327,10 +328,13 @@ async function loadData(){
   S.enc=enc;S.loadedAt=Date.now();
   return openData()}
 async function openData(){
-  if(!S.pass)return lockScreen("");
-  try{S.data=await decrypt(S.enc,S.pass)}
-  catch(e){S.data=null;return lockScreen(LS.get("opened",false)?"changed":"wrong")}
-  LS.set("opened",true);keepLink();
+  const keys=[...new Set([S.linkKey,S.pass,LS.get("pass","")].filter(Boolean))];   // link first, then the saved one
+  if(!keys.length)return lockScreen("");
+  let data=null;
+  for(const k of keys){try{data=await decrypt(S.enc,k);S.pass=k;break}catch(e){}}
+  S.data=data;
+  if(!data){keepLink();return lockScreen(LS.get("opened",false)?"changed":"wrong")}
+  LS.set("pass",S.pass);LS.set("opened",true);keepLink();
   if(S.accMonth===null){const cm=curMonth();let m=cm;while(m>0&&!S.data.months[m].entries.length)m--;S.accMonth=m;S.memMonth=cm}
   if(!me())return pickScreen();
   render();return true}
@@ -340,8 +344,12 @@ function lockScreen(err){hideTabs();
   $("app").innerHTML=`<div class="center"><form class="box" onsubmit="return tryPass(event)"><img src="icon-192.png" alt=""><h1>${esc(t("name"))}</h1><p>🔒 ${t("passTitle")}<br><span class="small">${t("passHint")}</span></p>
     <input id="passIn" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XX" aria-label="${t("passTitle")}">
     <div class="err">${err?t(err):""}</div><button class="btn primary" type="submit">${t("open")}</button>
-    <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p></form></div>`}
-function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.pass=v;LS.set("pass",v);openData();return false}
+    ${STORE_OK?"":`<div class="banner warn" style="margin-top:14px;text-align:left">⚠️ ${t("noStore")}</div>`}
+    <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
+    <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
+/* one line the member can read out to the committee when the app does not open */
+function diag(){return `v2 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;openData();return false}
 function pickScreen(){hideTabs();
   $("app").innerHTML=`<div class="center" style="place-items:start center"><div class="box"><img src="icon-192.png" alt=""><h1>${t("pickTitle")}</h1><p>${t("pickHint")}</p>
     <div class="card pick">${S.data.flats.map((f,i)=>`<button class="rw" onclick="pickFlat(${i})"><span class="em no">${n(f.no)}</span><span class="tx"><b>${esc(f.name)}</b><small>${t("flat")} ${n(f.no)}</small></span><span>›</span></button>`).join("")}</div></div></div>`;
@@ -365,7 +373,7 @@ function render(){if(!S.data)return;
 function toggleLang(locked){S.lang=S.lang==="mr"?"en":"mr";LS.set("lang",S.lang);if(locked)lockScreen("");else render()}
 function toggleTheme(){setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");render()}
 async function refresh(){const b=$("refBtn");if(b)b.classList.add("spin");await loadData();toast(S.offline?t("noNet"):t("refreshed"))}
-function lockApp(){S.pass="";S.data=null;LS.del("pass");try{history.replaceState(null,"",location.pathname)}catch(e){}lockScreen("")}
+function lockApp(){S.pass="";S.linkKey="";S.data=null;LS.del("pass");keepLink();lockScreen("")}
 
 /* ---------------------------------------------------------------- shared pieces */
 function yearGrid(f){const cm=curMonth();
