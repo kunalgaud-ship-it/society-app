@@ -348,7 +348,11 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   pinWait:"खूप चुकीचे प्रयत्न झाले. एक मिनिटाने पुन्हा प्रयत्न करा.",
   pickLock:"हा फ्लॅट निवडल्यावर या मोबाईलवर फ्लॅट बदलण्याचा पर्याय बंद होईल. परत येण्यासाठी आपली स्वतःची लिंक उघडा.",pickView:"हा फ्लॅट पहा",
   pickYes:"होय, हा माझा फ्लॅट आहे",wrongFlat:"फ्लॅट चुकीचा आहे? समितीला कळवा",
-  wrongMsg:"माझ्या ॲपमध्ये फ्लॅट चुकीचा निवडला गेला आहे. कृपया माझ्या फ्लॅटची लिंक पाठवा."},
+  wrongMsg:"माझ्या ॲपमध्ये फ्लॅट चुकीचा निवडला गेला आहे. कृपया माझ्या फ्लॅटची लिंक पाठवा.",
+  notif:"भरणा जमा झाल्याची सूचना",notifOn:"चालू",notifOff:"बंद. चालू करण्यासाठी दाबा",
+  notifBlocked:"मोबाईलच्या सेटिंगमध्ये या ॲपसाठी Notifications चालू करा.",
+  notifReady:"सूचना चालू झाली. तुमचा भरणा नोंदवल्यावर मोबाईलवर सूचना येईल.",notifStop:"सूचना बंद केली",
+  payGot:"भरणा जमा झाला ✅",payGotB:"{m} महिन्याचे {a} जमा झाले. धन्यवाद!"},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
   offline:"No internet. Showing the last saved data.",hello:"Hello",flat:"Flat",outstanding:"Outstanding",
   allPaid:"All dues cleared. Thank you!",advance:"Paid in advance",pendingMonths:"Pending months",payNow:"Pay now",details:"Details",
@@ -401,7 +405,11 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   pinWait:"Too many wrong tries. Try again in a minute.",
   pickLock:"After choosing this flat, the change-flat option is locked on this phone. Open your own link to come back.",pickView:"Show this flat",
   pickYes:"Yes, this is my flat",wrongFlat:"Wrong flat? Tell the committee",
-  wrongMsg:"The wrong flat was chosen in my app. Please send me the link for my flat."}
+  wrongMsg:"The wrong flat was chosen in my app. Please send me the link for my flat.",
+  notif:"Payment notifications",notifOn:"On",notifOff:"Off. Tap to turn on",
+  notifBlocked:"Allow notifications for this app in the phone's settings.",
+  notifReady:"Notifications are on. You will be told when your payment is recorded.",notifStop:"Notifications turned off",
+  payGot:"Payment received ✅",payGotB:"{a} received for {m}. Thank you!"}
 };
 
 /* ---------------------------------------------------------------- icons (inline, no downloads) */
@@ -546,7 +554,7 @@ async function openData(){
   LS.set("pass",S.pass);LS.set("opened",true);keepLink();
   if(S.accMonth===null){const cm=curMonth();let m=cm;while(m>0&&!S.data.months[m].entries.length)m--;S.accMonth=m;S.memMonth=cm}
   if(!me())return pickScreen();
-  render();return true}
+  checkPayments();render();return true}
 
 function fatal(kind){hideTabs();$("app").innerHTML=`<div class="center"><div class="box"><img class="logo" src="icon-192.png" alt=""><h1>${esc(t("name"))}</h1><p>${t(kind)}</p>${kind==="fatal"?`<button class="btn primary" onclick="loadData()">${ic("refresh")} ${t("retry")}</button>`:""}</div></div>`}
 function lockScreen(err){hideTabs();
@@ -558,7 +566,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v12 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v13 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -742,6 +750,7 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
       :item("home","c5",esc(f.name)+" · "+t("flat")+" "+n(f.no),t("wrongFlat"),"wrongFlat()")}
     ${item("globe","c6",t("language"),t("languageS"),"toggleLang()")}
     ${item(dark?"moon":"sun","c3",t("theme"),dark?t("themeD"):t("themeL"),"toggleTheme()")}
+    ${NOTE_OK?item("bell","c2",t("notif"),t(notifyOn()?"notifOn":"notifOff"),"toggleNotify()"):""}
     ${item("refresh","c7",t("refresh"),t("updated")+": "+fmtStamp(S.data.updated),"refresh()")}</div></div>
   <div class="card"><div class="rows">
     ${STANDALONE?"":item("phone","c6",t("install"),t("installS"),"installSheet()")}
@@ -926,6 +935,33 @@ function receiptText(m){const f=me();
   return `🧾 *${t("receipt")}*\n🏢 *${bname()}*\n━━━━━━━━━━━━━━━━\n${t("rcptNo")}: ${receiptNo(f,m)}\n👤 ${t("member")}: ${f.name} (${t("flat")} ${n(f.no)})\n📅 ${t("month")}: ${monF(m)} ${n(S.data.year)}\n💰 ${t("amount")}: ${money(f.paid[m])}\n━━━━━━━━━━━━━━━━\n${t("rcptNote")}`}
 function shareReceipt(m){const text=receiptText(m);if(navigator.share)navigator.share({text}).catch(()=>{});else wa(text,"")}
 
+/* ---------------------------------------------------------------- payment notifications */
+/* The last payments this phone has seen are kept where the service worker can read them too.
+   A month whose amount went up since then is a newly recorded payment: the member is told in
+   the app, and with a phone notification when that is switched on. On Android an installed app
+   also looks in the background now and then (sw.js). */
+const NOTE_OK="Notification" in window&&"serviceWorker" in navigator&&"caches" in window;
+function notifyOn(){return NOTE_OK&&LS.get("notify",false)&&Notification.permission==="granted"}
+async function payState(v){try{const c=await caches.open("society-state");
+  if(v===undefined){const r=await c.match("pay-state");return r?await r.json():null}
+  await c.put("pay-state",new Response(JSON.stringify(v)))}catch(e){}return null}
+function phoneNote(title,body){navigator.serviceWorker.ready.then(r=>r.showNotification(title,{body,icon:"icon-192.png",badge:"icon-192.png",tag:"pay",data:{url:location.href}})).catch(()=>{})}
+async function checkPayments(){const f=me();if(!f||!("caches" in window))return;
+  const old=await payState(),same=old&&String(old.flat)===String(S.flat)&&old.year===S.data.year;
+  const got=same?f.paid.map((v,m)=>({m,a:v-(old.paid[m]||0)})).filter(x=>x.a>0):[];
+  await payState({flat:S.flat,year:S.data.year,paid:f.paid,pass:S.pass,lang:S.lang,on:notifyOn(),title:t("payGot"),body:t("payGotB"),mons:MON[S.lang+"F"]});
+  if(!got.length)return;
+  const lines=got.map(x=>t("payGotB",{m:monF(x.m),a:money(x.a)}));
+  lines.forEach(toast);
+  if(notifyOn())phoneNote(t("payGot"),lines.join("\n"))}
+function bgCheck(on){if(!NOTE_OK)return;
+  navigator.serviceWorker.ready.then(r=>r.periodicSync&&(on?r.periodicSync.register("pay-check",{minInterval:6*3600*1000}):r.periodicSync.unregister("pay-check"))).catch(()=>{})}
+async function toggleNotify(){
+  if(notifyOn()){LS.set("notify",false);bgCheck(false);await checkPayments();render();return toast(t("notifStop"))}
+  const p=Notification.permission==="default"?await Notification.requestPermission():Notification.permission;
+  if(p!=="granted")return toast(t("notifBlocked"));
+  LS.set("notify",true);bgCheck(true);await checkPayments();render();phoneNote(bname(),t("notifReady"))}
+
 /* ---------------------------------------------------------------- install */
 addEventListener("beforeinstallprompt",e=>{e.preventDefault();S.installEvt=e});
 addEventListener("appinstalled",()=>{S.installEvt=null;LS.set("noInstall",true)});
@@ -941,7 +977,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
 
 /* ---------------------------------------------------------------- start */
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.data&&Date.now()-S.loadedAt>5*60*1000)loadData()});
-if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").then(()=>{if(notifyOn())bgCheck(true)}).catch(()=>{}));
 readLink();
 loadData();
 </script>
