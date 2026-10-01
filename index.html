@@ -352,6 +352,7 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   notif:"भरणा जमा झाल्याची सूचना",notifOn:"चालू",notifOff:"बंद. चालू करण्यासाठी दाबा",
   notifBlocked:"मोबाईलच्या सेटिंगमध्ये या ॲपसाठी Notifications चालू करा.",
   notifReady:"सूचना चालू झाली. तुमचा भरणा नोंदवल्यावर मोबाईलवर सूचना येईल.",notifStop:"सूचना बंद केली",
+  pendSend:"पेंडिंग यादी WhatsApp वर पाठवा",
   payGot:"भरणा जमा झाला ✅",payGotB:"{m} महिन्याचे {a} जमा झाले. धन्यवाद!"},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
   offline:"No internet. Showing the last saved data.",hello:"Hello",flat:"Flat",outstanding:"Outstanding",
@@ -409,6 +410,7 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   notif:"Payment notifications",notifOn:"On",notifOff:"Off. Tap to turn on",
   notifBlocked:"Allow notifications for this app in the phone's settings.",
   notifReady:"Notifications are on. You will be told when your payment is recorded.",notifStop:"Notifications turned off",
+  pendSend:"Send pending list on WhatsApp",
   payGot:"Payment received ✅",payGotB:"{a} received for {m}. Thank you!"}
 };
 
@@ -721,10 +723,29 @@ function memView(){const D=S.data,m=S.memMonth,c=monthCounts(m),mine=String(S.fl
     x.s==="partial"?`<span class="chip warn">${money(x.f.paid[m])}</span>`:x.s==="due"?`<span class="chip bad">${t("due")}</span>`:`<span class="chip info">—</span>`;
   return `<div class="card"><h3>${tile("cal","","sm")}${monF(m)} ${n(D.year)}</h3>${monthPills(m,"setMemMonth")}
     <div class="chips" style="margin-top:10px"><span class="chip good">${ic("check")}${t("paid")} ${n(c.paid)}</span>${c.partial?`<span class="chip warn">${t("partial")} ${n(c.partial)}</span>`:""}${now?`<span class="chip bad">${t("pending")} ${n(c.due)}</span>`:""}</div>
-    <div class="prog"><i style="width:${Math.round(c.paid/D.flats.length*100)}%"></i></div></div>
+    <div class="prog"><i style="width:${Math.round(c.paid/D.flats.length*100)}%"></i></div>
+    ${isAdmin()?`<div style="height:14px"></div><button class="btn wa" onclick="sendPending(${m})">${ic("chat")}${t("pendSend")}</button>`:""}</div>
   <div class="card"><div class="rows">${list.map(x=>`<button class="rw${String(x.f.no)===mine?" me":""}" onclick="flatSheet(${x.i})">${avatar(x.f,x.i)}
     <span class="tx"><b>${esc(x.f.name)}${String(x.f.no)===mine?` <span class="chip info">${t("you")}</span>`:""}</b><small>${t("flat")} ${n(x.f.no)}${monthDue(x.f,m)>0?" · "+t("due")+" "+money(monthDue(x.f,m)):""}</small></span>
     <span class="am">${chip(x)}</span></button>`).join("")}</div></div>`}
+/* Committee only: the month's pending list for the society WhatsApp group, worded like the
+   one from the PC app (paid = full rate received, partial = something received, else pending). */
+function pendingText(m){const D=S.data,mr=S.lang==="mr",d=new Date(),bar="━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+  const paid=D.flats.filter(f=>f.paid[m]>=D.rate),part=D.flats.filter(f=>f.paid[m]>0&&f.paid[m]<D.rate),pend=D.flats.filter(f=>!(f.paid[m]>0));
+  const left=pend.length+part.length,fl=f=>`${t("flat")} ${n(f.no)} - ${f.name}`;
+  const L=[`🏢 *${bname()}*`,bar,`📅 *${monF(m)} ${n(D.year)} - ${mr?"मेंटेनन्स स्थिती":"Maintenance status"}*`,bar,"",
+    `✅ *${mr?"जमा झाले":"Paid"}:* ${n(paid.length)} / ${n(D.flats.length)} ${mr?"सदनिका":"flats"}`,
+    `⏳ *${mr?"बाकी":"Pending"}:* ${n(left)} ${mr?"सदनिका":"flats"}`,
+    `💰 *${mr?"दरमहा मेंटेनन्स":"Monthly maintenance"}:* ${money(D.rate)}`,"",
+    mr?`📌 *${monF(m)} महिन्याचे पेंडिंग सदस्य (${n(left)}):*`:`📌 *Pending members for ${monF(m)} (${left}):*`];
+  if(!left)L.push(mr?"   ✅ सर्व सदस्यांनी या महिन्याचे पैसे जमा केले आहेत. धन्यवाद! 🙏":"   ✅ Everyone has paid for this month. Thank you! 🙏");
+  let k=0;
+  pend.forEach(f=>L.push(`   ${n(++k)}. ${fl(f)}`));
+  part.forEach(f=>L.push(`   ${n(++k)}. ${fl(f)} (`+(mr?`${money(f.paid[m])} जमा, ${money(D.rate-f.paid[m])} बाकी`:`paid ${money(f.paid[m])}, ${money(D.rate-f.paid[m])} short`)+")"));
+  if(left)L.push("",mr?"🙏 ज्यांचे बाकी आहे त्यांनी कृपया लवकरात लवकर भरणा करावा ही विनंती.":"🙏 Members with pending amount are requested to pay at the earliest.");
+  L.push("",bar,`🏢 *${bname()}${mr?" समिती":" Committee"}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
+  return L.join("\n")}
+function sendPending(m){if(isAdmin())wa(pendingText(m),"")}
 function flatSheet(i){const D=S.data,f=D.flats[i],cm=curMonth(),owe=monthDue(f,cm);
   sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)} · ${t("rate")} ${money(D.rate)}</p></div></div>
     <div class="kp" style="margin:16px 0 14px"><div class="k"><span>${t("totalPaid")}</span><b class="num">${money(f.total)}</b></div>
