@@ -353,6 +353,16 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   notifBlocked:"मोबाईलच्या सेटिंगमध्ये या ॲपसाठी Notifications चालू करा.",
   notifReady:"सूचना चालू झाली. तुमचा भरणा नोंदवल्यावर मोबाईलवर सूचना येईल.",notifStop:"सूचना बंद केली",
   pendSend:"पेंडिंग यादी WhatsApp वर पाठवा",
+  admin:"समिती: मोबाईलवरून नोंदी",admOnS:"चालू · {n} नोंदी PC ची वाट पाहत आहेत",
+  admIntro:"या मोबाईलवरून भरणा, खर्च, सूचना व तक्रारी नोंदवण्यासाठी GitHub टोकन एकदा टाका. टोकन फक्त या मोबाईलवर राहते.",
+  admNoRepo:"आधी PC ॲपमधून एकदा Publish करा.",admTok:"GitHub टोकन",admStart:"चालू करा",admOn:"मोबाईलवरून नोंदी चालू झाल्या",
+  admTokBad:"GitHub ने टोकन स्वीकारले नाही.",admFail:"नोंद जतन झाली नाही. इंटरनेट तपासा.",
+  admSaved:"जतन झाले. सदस्यांना सुमारे एका मिनिटात दिसेल.",admSave:"जतन करा",admClear:"रिकामे",admExp:"खर्च नोंदवा",
+  admDesc:"तपशील (ऐच्छिक)",admNotice:"नवीन सूचना लिहा",admTitle:"शीर्षक",admPin:"महत्त्वाची (वर ठेवा)",
+  admEvent:"कार्यक्रमाची तारीख (ऐच्छिक)",admDel:"हटवा",admSure:"नक्की?",admComp:"तक्रार नोंदवून घ्या",
+  admNote:"सदस्यांसाठी टीप (ऐच्छिक)",admWait:"PC मध्ये अजून न गेलेल्या नोंदी",
+  admWaitS:"PC ॲप उघडल्यावर या नोंदी Excel मध्ये जातात. चुकीची नोंद येथे हटवा.",admNone:"सर्व नोंदी PC मध्ये गेल्या आहेत.",
+  admOff:"या मोबाईलवरून टोकन काढा",
   payGot:"भरणा जमा झाला ✅",payGotB:"{m} महिन्याचे {a} जमा झाले. धन्यवाद!"},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
   offline:"No internet. Showing the last saved data.",hello:"Hello",flat:"Flat",outstanding:"Outstanding",
@@ -411,6 +421,16 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   notifBlocked:"Allow notifications for this app in the phone's settings.",
   notifReady:"Notifications are on. You will be told when your payment is recorded.",notifStop:"Notifications turned off",
   pendSend:"Send pending list on WhatsApp",
+  admin:"Committee: entries from the phone",admOnS:"On · {n} entries waiting for the PC",
+  admIntro:"Paste the GitHub token once to enter payments, expenses, notices and complaints from this phone. The token stays on this phone only.",
+  admNoRepo:"Publish once from the PC app first.",admTok:"GitHub token",admStart:"Turn on",admOn:"Entries from the phone are on",
+  admTokBad:"GitHub did not accept the token.",admFail:"Not saved. Check the internet.",
+  admSaved:"Saved. Members see it in about a minute.",admSave:"Save",admClear:"Clear",admExp:"Add expense",
+  admDesc:"Details (optional)",admNotice:"Write a notice",admTitle:"Title",admPin:"Important (keep on top)",
+  admEvent:"Event date (optional)",admDel:"Delete",admSure:"Are you sure?",admComp:"Note a complaint",
+  admNote:"Note for members (optional)",admWait:"Entries not yet in the PC workbook",
+  admWaitS:"They go into Excel when the PC app is opened. Delete a wrong entry here.",admNone:"All entries are in the PC workbook.",
+  admOff:"Remove the token from this phone",
   payGot:"Payment received ✅",payGotB:"{a} received for {m}. Thank you!"}
 };
 
@@ -479,7 +499,7 @@ const CALM=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const NOW=new Date();
 const STORE_OK=(()=>{try{localStorage.setItem("soc.t","1");localStorage.removeItem("soc.t");return true}catch(e){return false}})();
 const S={lang:LS.get("lang","mr"),flat:LS.get("flat",null),pass:LS.get("pass",""),linkKey:"",tab:"home",data:null,enc:null,
-  offline:false,accMonth:null,memMonth:null,payAmt:0,installEvt:null,loadedAt:0,enter:true};
+  offline:false,accMonth:null,memMonth:null,payAmt:0,installEvt:null,loadedAt:0,enter:true,inbox:LS.get("inbox",null),waiting:[]};
 /* iPhone saves the page address (with the key) as the home-screen icon only when there is no manifest */
 if(!IOS){const ml=document.createElement("link");ml.rel="manifest";ml.href="manifest.webmanifest";document.head.appendChild(ml)}
 const normPass=p=>String(p||"").replace(/[\s\-]/g,"").toUpperCase();
@@ -523,11 +543,19 @@ function monthCounts(m){const c={paid:0,partial:0,due:0};S.data.flats.forEach(f=
 
 /* ---------------------------------------------------------------- unlock */
 function b64(s){const bin=atob(s),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
+function ub64(u){let s="";u.forEach(c=>s+=String.fromCharCode(c));return btoa(s)}
+const KEYS={};                                      // making a key is slow; data and inbox share one
+async function aesKey(pass,salt,iter){const id=normPass(pass)+"|"+salt+"|"+iter;
+  if(!KEYS[id]){const km=await crypto.subtle.importKey("raw",new TextEncoder().encode(normPass(pass)),"PBKDF2",false,["deriveKey"]);
+    KEYS[id]=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(salt),iterations:iter,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+  return KEYS[id]}
 async function decrypt(enc,pass){
-  const km=await crypto.subtle.importKey("raw",new TextEncoder().encode(normPass(pass)),"PBKDF2",false,["deriveKey"]);
-  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(enc.salt),iterations:enc.iter,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["decrypt"]);
-  const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(enc.iv)},key,b64(enc.ct));
+  const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(enc.iv)},await aesKey(pass,enc.salt,enc.iter),b64(enc.ct));
   return JSON.parse(new TextDecoder().decode(plain))}
+/* same format as data.json, so the PC app can open it with the passcode */
+async function encrypt(obj){const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},await aesKey(S.pass,S.enc.salt,S.enc.iter),new TextEncoder().encode(JSON.stringify(obj)));
+  return {v:1,kdf:"PBKDF2-SHA256",iter:S.enc.iter,salt:S.enc.salt,iv:ub64(iv),ct:ub64(new Uint8Array(ct))}}
 
 function readLink(){
   const h=new URLSearchParams(location.hash.slice(1));
@@ -545,6 +573,7 @@ async function loadData(){
   catch(e){enc=LS.get("enc",null);S.offline=true}
   if(!enc)return fatal("fatal");
   S.enc=enc;S.loadedAt=Date.now();
+  if(!S.offline){const box=await fetchInbox();if(box!==undefined){S.inbox=box;LS.set("inbox",box)}}
   return openData()}
 async function openData(){
   const keys=[...new Set([S.linkKey,S.pass,LS.get("pass","")].filter(Boolean))];   // link first, then the saved one
@@ -554,6 +583,7 @@ async function openData(){
   S.data=data;
   if(!data){keepLink();return lockScreen(LS.get("opened",false)?"changed":"wrong")}
   LS.set("pass",S.pass);LS.set("opened",true);keepLink();
+  S.waiting=[];if(S.inbox){try{applyOps(data,(await decrypt(S.inbox,S.pass)).ops||[])}catch(e){}}
   if(S.accMonth===null){const cm=curMonth();let m=cm;while(m>0&&!S.data.months[m].entries.length)m--;S.accMonth=m;S.memMonth=cm}
   if(!me())return pickScreen();
   checkPayments();render();return true}
@@ -568,7 +598,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v13 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v14 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -646,7 +676,7 @@ function dueLine(){const d=S.data.due_day,day=NOW.getDate();if(!d||S.data.year!=
   return day<d?t("dueBy",{d:n(d)+" "+mon(curMonth())}):day===d?t("dueToday"):t("overdue",{n:n(day-d)})}
 function noticeBody(x){const chips=(x.pinned?`<span class="chip warn">${ic("pin")}${t("important")}</span>`:"")+eventChip(x);
   return `${chips?`<div class="chips" style="margin-bottom:8px;white-space:normal">${chips}</div>`:""}<div class="hd"><b>${esc(x.title)}</b><small>${fmtDate(x.date)}</small></div>${x.body?`<div class="bd">${esc(x.body)}</div>`:""}`}
-function noticeCard(x){return `<div class="card notice${x.pinned?" pin":""}">${noticeBody(x)}</div>`}
+function noticeCard(x){return `<div class="card notice${x.pinned?" pin":""}">${noticeBody(x)}${S.tab==="not"&&canEdit()?`<div style="height:12px"></div><button class="btn" onclick="delNotice(${x.id})">${ic("x")}${t("admDel")}</button>`:""}</div>`}
 /* last month worth showing: the current one, or later if the sheet already has figures there */
 function lastMonth(){let last=curMonth();
   S.data.months.forEach((m,i)=>{if(m.collected||m.expenses)last=Math.max(last,i)});return last}
@@ -706,7 +736,8 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
     ${mo.entries.length?`<div class="rows">${mo.entries.map(e=>{const col=meta(e.cat).color||"#6366f1";
       return `<div class="rw"><span class="ct" style="background:${esc(col)}22;color:${esc(col)}">${ic(CAT_IC[e.cat]||"box")}</span><span class="tx"><b>${esc(plain(e[S.lang]||e.en))}</b><small>${fmtDate(e.date)}</small></span><span class="am num">${money(e.amount)}</span></div>`}).join("")}
       <div class="rw"><span class="ct" style="background:var(--brandSoft);color:var(--brand);font-weight:800">Σ</span><span class="tx"><b>${t("total")} · ${monF(sel)}</b></span><span class="am num">${money(mo.expenses)}</span></div></div>`
-      :`<div class="empty">${tile("receipt","c7")}${t("noExp")}</div>`}</div>
+      :`<div class="empty">${tile("receipt","c7")}${t("noExp")}</div>`}
+    ${canEdit()?`<div style="height:12px"></div><button class="btn primary" onclick="expSheet()">${ic("pen")}${t("admExp")}</button>`:""}</div>
   <div class="card"><h3>${tile("pie","c6","sm")}${t("cats")}</h3>
     <div class="dn">${donut(cats.map(([k,v])=>({v,color:meta(k).color||"#6366f1"})),ctot)}<div class="mid"><span>${t("ytdOut")}</span><b class="num">${money(T2.expenses)}</b></div></div>
     ${cats.map(([k,v])=>{const c=meta(k);
@@ -725,7 +756,7 @@ function memView(){const D=S.data,m=S.memMonth,c=monthCounts(m),mine=String(S.fl
     <div class="chips" style="margin-top:10px"><span class="chip good">${ic("check")}${t("paid")} ${n(c.paid)}</span>${c.partial?`<span class="chip warn">${t("partial")} ${n(c.partial)}</span>`:""}${now?`<span class="chip bad">${t("pending")} ${n(c.due)}</span>`:""}</div>
     <div class="prog"><i style="width:${Math.round(c.paid/D.flats.length*100)}%"></i></div>
     ${isAdmin()?`<div style="height:14px"></div><button class="btn wa" onclick="sendPending(${m})">${ic("chat")}${t("pendSend")}</button>`:""}</div>
-  <div class="card"><div class="rows">${list.map(x=>`<button class="rw${String(x.f.no)===mine?" me":""}" onclick="flatSheet(${x.i})">${avatar(x.f,x.i)}
+  <div class="card"><div class="rows">${list.map(x=>`<button class="rw${String(x.f.no)===mine?" me":""}" onclick="${canEdit()?"payEntry":"flatSheet"}(${x.i})">${avatar(x.f,x.i)}
     <span class="tx"><b>${esc(x.f.name)}${String(x.f.no)===mine?` <span class="chip info">${t("you")}</span>`:""}</b><small>${t("flat")} ${n(x.f.no)}${monthDue(x.f,m)>0?" · "+t("due")+" "+money(monthDue(x.f,m)):""}</small></span>
     <span class="am">${chip(x)}</span></button>`).join("")}</div></div>`}
 /* Committee only: the month's pending list for the society WhatsApp group, worded like the
@@ -754,7 +785,9 @@ function flatSheet(i){const D=S.data,f=D.flats[i],cm=curMonth(),owe=monthDue(f,c
     ${String(f.no)===String(S.flat)&&owe>0?`<div style="height:6px"></div><button class="btn primary" onclick="paySheet()">${ic("wallet")}${t("payNow")}</button>`:""}`)}
 
 /* ---------------------------------------------------------------- notices */
-function notView(){const N=S.data.notices;return N.length?N.map(noticeCard).join(""):`<div class="card empty">${tile("bell","c3")}${t("noNotices")}</div>`}
+function notView(){const N=S.data.notices;
+  return (canEdit()?`<button class="btn primary" onclick="noticeSheet()">${ic("pen")}${t("admNotice")}</button>`:"")
+    +(N.length?N.map(noticeCard).join(""):`<div class="card empty">${tile("bell","c3")}${t("noNotices")}</div>`)}
 
 /* ---------------------------------------------------------------- more */
 function moreView(){const f=me(),dark=document.documentElement.getAttribute("data-theme")==="dark";
@@ -767,6 +800,7 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
     ${item("call","c4",t("contacts"),t("contactsS"),"contactsSheet()")}
     ${item("chat","c4",t("contact"),t("contactS"),"contactCommittee()")}</div></div>
   <div class="card"><div class="rows">
+    ${isAdmin()?item("pen","",t("admin"),canEdit()?t("admOnS",{n:n(S.waiting.length)}):t("notifOff"),"adminSheet()"):""}
     ${isAdmin()?item("home","c5",t("changeFlat"),esc(f.name)+" · "+t("flat")+" "+n(f.no),"changeFlat()")
       :item("home","c5",esc(f.name)+" · "+t("flat")+" "+n(f.no),t("wrongFlat"),"wrongFlat()")}
     ${item("globe","c6",t("language"),t("languageS"),"toggleLang()")}
@@ -923,11 +957,13 @@ function openMine(){return (S.data.complaints||[]).some(x=>x.status!=="done"&&St
 function boardSheet(){const B=S.data.complaints||[],cls={open:"bad",progress:"warn",done:"good"},icn={open:"alert",progress:"clock",done:"check"};
   sheet(`${sheetHead("list","c6",t("board"),t("boardS"))}<div style="height:8px"></div>
     ${B.length?`<div class="rows">${B.map(x=>{const s=cls[x.status]?x.status:"open";
-      return `<div class="rw${String(x.flat)===String(S.flat)?" me":""}" style="align-items:flex-start"><span class="ct" style="background:var(--${cls[s]}Soft);color:var(--${cls[s]})">${ic(icn[s])}</span>
+      const tag=canEdit()?"button":"div";
+      return `<${tag} class="rw${String(x.flat)===String(S.flat)?" me":""}" style="align-items:flex-start"${tag==="button"?` onclick="compEdit(${x.id})"`:""}><span class="ct" style="background:var(--${cls[s]}Soft);color:var(--${cls[s]})">${ic(icn[s])}</span>
         <span class="tx"><b style="white-space:normal">${esc(x.title)}</b><small>${x.flat?t("flat")+" "+n(esc(x.flat)):t("common")} · ${fmtDate(x.date)}</small>${x.note?`<small style="display:block;margin-top:3px;color:var(--text)">${esc(x.note)}</small>`:""}</span>
-        <span class="chip ${cls[s]}">${t("st"+s)}</span></div>`}).join("")}</div>`
+        <span class="chip ${cls[s]}">${t("st"+s)}</span></${tag}>`}).join("")}</div>`
       :`<div class="empty">${tile("list","c6")}${t("noBoard")}</div>`}
-    <div style="height:12px"></div><button class="btn" onclick="complaintSheet()">${ic("pen")}${t("complaint")}</button>`)}
+    <div style="height:12px"></div>${canEdit()?`<button class="btn primary" onclick="compNew()">${ic("pen")}${t("admComp")}</button>`
+      :`<button class="btn" onclick="complaintSheet()">${ic("pen")}${t("complaint")}</button>`}`)}
 
 /* ---------------------------------------------------------------- contacts */
 function contactsSheet(){const C=S.data.contacts||[];
@@ -955,6 +991,128 @@ function receiptSheet(m){const f=me(),v=f.paid[m];if(!(v>0))return;
 function receiptText(m){const f=me();
   return `🧾 *${t("receipt")}*\n🏢 *${bname()}*\n━━━━━━━━━━━━━━━━\n${t("rcptNo")}: ${receiptNo(f,m)}\n👤 ${t("member")}: ${f.name} (${t("flat")} ${n(f.no)})\n📅 ${t("month")}: ${monF(m)} ${n(S.data.year)}\n💰 ${t("amount")}: ${money(f.paid[m])}\n━━━━━━━━━━━━━━━━\n${t("rcptNote")}`}
 function shareReceipt(m){const text=receiptText(m);if(navigator.share)navigator.share({text}).catch(()=>{});else wa(text,"")}
+
+/* ---------------------------------------------------------------- committee entries from the phone */
+/* The committee's phone (its own flat, opened with its personal link) can enter payments,
+   expenses, notices and complaints while the PC is off. Excel lives on the PC, so every entry
+   is added to inbox.json in the app's GitHub repository, encrypted like data.json. Writing
+   needs the committee's GitHub token, which is kept on this phone only. Every phone adds the
+   waiting entries on top of the published data (applyOps); the PC app moves them into the
+   workbook when it next runs and empties the inbox (mobile.py). */
+function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function canEdit(){return !!S.data&&!!S.data.repo&&isAdmin()&&!!LS.get("ghTok","")}
+async function ghInbox(method,body){
+  const r=await fetch("https://api.github.com/repos/"+LS.get("ghRepo","")+"/contents/inbox.json"+(body?"":"?t="+Date.now()),{method,cache:"no-store",
+    headers:{Authorization:"Bearer "+LS.get("ghTok",""),Accept:"application/vnd.github+json"},body:body?JSON.stringify(body):undefined});
+  if(r.status===404&&!body)return null;
+  if(!r.ok)throw new Error(String(r.status));
+  return r.json()}
+/* null = no inbox, undefined = could not find out (keep the saved one). The committee's phone
+   asks GitHub itself, so it sees its own entries at once; the others read the published copy. */
+async function fetchInbox(){
+  if(LS.get("ghTok","")){try{const cur=await ghInbox("GET");return cur?JSON.parse(atob(cur.content.replace(/\s/g,""))):null}catch(e){}}
+  try{const r=await fetch("inbox.json?t="+Date.now(),{cache:"no-store"});if(r.status===404)return null;return r.ok?await r.json():undefined}
+  catch(e){return undefined}}
+function applyOps(D,ops){const done=new Set(D.applied||[]);S.waiting=ops.filter(o=>!done.has(o.id));D.complaints=D.complaints||[];
+  for(const o of S.waiting){
+    if(o.type==="payment"){const f=D.flats.find(x=>String(x.no)===String(o.flat)),M=D.months[o.month];if(!f||!M)continue;
+      const d=(+o.amount||0)-f.paid[o.month];f.paid[o.month]+=d;f.total+=d;M.collected+=d;M.net+=d;D.totals.collected+=d;D.balance+=d}
+    else if(o.type==="expense_add"){const M=D.months[o.month],a=+o.amount||0;if(!M)continue;
+      M.entries.push({date:o.date,amount:a,cat:o.cat,en:"• "+o.desc,mr:"• "+(o.mr||o.desc)});M.expenses+=a;M.net-=a;
+      M.categories[o.cat]=(M.categories[o.cat]||0)+a;D.category_year[o.cat]=(D.category_year[o.cat]||0)+a;D.totals.expenses+=a;D.balance-=a}
+    else if(o.type==="notice_add")D.notices.push({id:o.id,date:o.date,title:o.title,body:o.body||"",pinned:!!o.pinned,event:o.event||""});
+    else if(o.type==="notice_delete")D.notices=D.notices.filter(x=>x.id!==o.ref);
+    else if(o.type==="complaint_add")D.complaints.unshift({id:o.id,date:o.date,updated:o.date,flat:o.flat||"",title:o.title,status:"open",note:o.note||""});
+    else if(o.type==="complaint_update"){const c=D.complaints.find(x=>x.id===o.ref);if(c){if(o.status)c.status=o.status;c.note=o.note||"";c.updated=o.date}}
+    else if(o.type==="complaint_delete")D.complaints=D.complaints.filter(x=>x.id!==o.ref)}
+  D.notices.sort((a,b)=>(!!b.pinned-!!a.pinned)||b.id-a.id)}
+/* read the inbox, change it, write it back; tried again when the PC wrote in between */
+async function changeInbox(fn){const done=S.data.applied||[];
+  for(let i=0;;i++){const cur=await ghInbox("GET");
+    const ops=cur?(await decrypt(JSON.parse(atob(cur.content.replace(/\s/g,""))),S.pass)).ops||[]:[];
+    const enc=await encrypt({v:1,ops:fn(ops.filter(o=>!done.includes(o.id)))});
+    try{await ghInbox("PUT",Object.assign({message:"Entry from the phone",content:btoa(JSON.stringify(enc))},cur?{sha:cur.sha}:{}));S.inbox=enc;LS.set("inbox",enc);return}
+    catch(e){if(i>=2||(e.message!=="409"&&e.message!=="422"))throw e}}}
+async function inboxDo(fn,after){if(!canEdit()||S.busy)return;S.busy=true;
+  try{await changeInbox(fn);closeSheet();await openData();toast(t("admSaved"));if(after)after()}
+  catch(e){toast(t(e.message==="401"||e.message==="403"?"admTokBad":"admFail"))}
+  finally{S.busy=false}}
+function saveOp(op){op.id=Date.now();op.date=op.date||today();return inboxDo(ops=>ops.concat(op))}
+function undoOp(id){if(confirm(t("admSure")))inboxDo(ops=>ops.filter(o=>o.id!==id),adminSheet)}
+
+function adminSheet(){if(!isAdmin())return;
+  if(!S.data.repo)return sheet(`${sheetHead("pen","",t("admin"))}<p style="font-weight:500">${t("admNoRepo")}</p>`);
+  if(!canEdit())return sheet(`${sheetHead("pen","",t("admin"),t("admIntro"))}
+    <form onsubmit="saveTok(event)"><label>${t("admTok")}<input id="tokIn" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ghp_…"></label>
+    ${S.data.admin_lock?`<label>${t("pinTitle")}<input id="tokPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>`:""}
+    <div style="height:16px"></div><button class="btn primary" type="submit">${ic("check")}${t("admStart")}</button></form>`);
+  sheet(`${sheetHead("pen","",t("admWait"),t("admWaitS"))}<div style="height:8px"></div>
+    ${S.waiting.length?`<div class="rows">${S.waiting.map(o=>`<div class="rw"><span class="tx"><b style="white-space:normal">${esc(opLabel(o))}</b><small>${fmtDate(o.date)}</small></span><button class="chip bad" onclick="undoOp(${o.id})">${ic("x")}${t("admDel")}</button></div>`).join("")}</div>`
+      :`<div class="empty">${tile("check","c5")}${t("admNone")}</div>`}
+    <div style="height:14px"></div><button class="btn" onclick="tokOff()">${ic("lock")}${t("admOff")}</button>`)}
+function opLabel(o){const f=S.data.flats.find(x=>String(x.no)===String(o.flat));
+  return o.type==="payment"?`${f?f.name:t("flat")+" "+o.flat} · ${mon(o.month)} · ${+o.amount?money(o.amount):t("admClear")}`
+    :o.type==="expense_add"?`${t("expenses")}: ${S.lang==="mr"?o.mr:o.desc} · ${money(o.amount)}`
+    :o.type==="notice_add"?`${t("not")}: ${o.title}`:o.type==="notice_delete"?`${t("not")}: ${t("admDel")}`
+    :o.type==="complaint_add"?`${t("board")}: ${o.title}`:o.type==="complaint_delete"?`${t("board")}: ${t("admDel")}`
+    :`${t("board")}: ${o.status?t("st"+o.status):o.note||""}`}
+async function saveTok(ev){ev.preventDefault();const tok=$("tokIn").value.trim();if(!tok)return;
+  if(S.data.admin_lock&&!(await pinOk($("tokPin").value.replace(/\s/g,""))))return toast(t("pinWrong"));
+  LS.set("ghTok",tok);LS.set("ghRepo",S.data.repo);
+  try{await ghInbox("GET")}catch(e){LS.del("ghTok");return toast(t(e.message==="401"||e.message==="403"?"admTokBad":"admFail"))}
+  closeSheet();await loadData();toast(t("admOn"))}
+function tokOff(){if(!confirm(t("admSure")))return;LS.del("ghTok");closeSheet();render()}
+
+function payEntry(i){const D=S.data,f=D.flats[i],m=S.memMonth,v=f.paid[m];
+  sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)} · ${monF(m)} ${n(D.year)}</p></div></div>
+    <label>${t("amount")} (₹)<input id="peAmt" type="number" inputmode="numeric" min="0" step="1" value="${v>0?v:D.rate}"></label>
+    <div class="chips" style="margin:12px 0 16px">${[D.rate,D.rate*2,D.rate*3,0].map(a=>`<button class="chip ${a?"info":"bad"}" style="padding:8px 13px;font-size:13px" onclick="$('peAmt').value=${a}">${a?money(a):t("admClear")}</button>`).join("")}</div>
+    <button class="btn primary" onclick="savePay(${i})">${ic("check")}${t("admSave")}</button><div style="height:10px"></div><button class="btn" onclick="flatSheet(${i})">${t("details")}</button>`)}
+function savePay(i){const v=$("peAmt").value.trim(),a=Math.round(+v);if(v===""||!(a>=0))return toast(t("needAmt"));
+  saveOp({type:"payment",flat:S.data.flats[i].no,month:S.memMonth,amount:a})}
+
+function expSheet(){const D=S.data,m=S.accMonth,ym=D.year+"-"+String(m+1).padStart(2,"0");
+  sheet(`${sheetHead("receipt","c3",t("admExp"),monF(m)+" "+n(D.year))}
+    <label>${t("type")}<select id="exCat">${Object.entries(D.category_meta).map(([k,c])=>`<option value="${esc(k)}">${esc(S.lang==="mr"?c.mr:c.en)}</option>`).join("")}</select></label>
+    <label>${t("admDesc")}<input id="exDesc" maxlength="80"></label>
+    <label>${t("date")}<input id="exDate" type="date" value="${today().slice(0,7)===ym?today():ym+"-01"}"></label>
+    <label>${t("amount")} (₹)<input id="exAmt" type="number" inputmode="decimal" min="1"></label>
+    <div style="height:16px"></div><button class="btn primary" onclick="saveExp()">${ic("check")}${t("admSave")}</button>`)}
+/* the name starts with the category's own name, so the PC app files it under the same category */
+function saveExp(){const k=$("exCat").value,c=S.data.category_meta[k]||{en:"Other",mr:"इतर खर्च"},txt=$("exDesc").value.trim(),a=+$("exAmt").value,d=$("exDate").value;
+  if(!(a>0)||!d)return toast(t("needAmt"));
+  const name=base=>k==="other"?(txt||base):base+(txt?" - "+txt:"");
+  saveOp({type:"expense_add",month:S.accMonth,date:d,amount:a,cat:k,desc:name(c.en),mr:name(c.mr)})}
+
+function noticeSheet(){sheet(`${sheetHead("bell","c3",t("admNotice"))}
+    <label>${t("admTitle")}<input id="ntTitle" maxlength="120"></label>
+    <label>${t("message")}<textarea id="ntBody" rows="4" maxlength="2000"></textarea></label>
+    <label>${t("admEvent")}<input id="ntEvent" type="date"></label>
+    <label style="display:flex;align-items:center;gap:10px"><input id="ntPin" type="checkbox" style="width:auto">${t("admPin")}</label>
+    <div style="height:16px"></div><button class="btn primary" onclick="saveNotice()">${ic("check")}${t("admSave")}</button>`)}
+function saveNotice(){const title=$("ntTitle").value.trim();if(!title)return toast(t("needMsg"));
+  saveOp({type:"notice_add",title,body:$("ntBody").value.trim(),pinned:$("ntPin").checked,event:$("ntEvent").value})}
+/* a notice / complaint that has not reached the PC yet is simply taken back out of the inbox */
+function delNotice(id){if(!confirm(t("admSure")))return;
+  if(S.waiting.some(o=>o.type==="notice_add"&&o.id===id))inboxDo(ops=>ops.filter(o=>o.id!==id));else saveOp({type:"notice_delete",ref:id})}
+
+const COMP_ST=["open","progress","done"];
+function compNew(){sheet(`${sheetHead("pen","c2",t("admComp"))}
+    <label>${t("flat")}<select id="cnFlat"><option value="">${t("common")}</option>${S.data.flats.map(f=>`<option value="${esc(f.no)}">${n(f.no)} - ${esc(f.name)}</option>`).join("")}</select></label>
+    <label>${t("admTitle")}<input id="cnTitle" maxlength="160"></label>
+    <label>${t("admNote")}<input id="cnNote" maxlength="300"></label>
+    <div style="height:16px"></div><button class="btn primary" onclick="saveCompNew()">${ic("check")}${t("admSave")}</button>`)}
+function saveCompNew(){const title=$("cnTitle").value.trim();if(!title)return toast(t("needMsg"));
+  saveOp({type:"complaint_add",flat:$("cnFlat").value,title,note:$("cnNote").value.trim()})}
+function compEdit(id){const x=(S.data.complaints||[]).find(c=>c.id===id);if(!x)return;S.compSt=COMP_ST.includes(x.status)?x.status:"open";
+  sheet(`${sheetHead("list","c6",esc(x.title),(x.flat?t("flat")+" "+n(esc(x.flat)):t("common"))+" · "+fmtDate(x.date))}
+    <div class="pills" id="compSt" style="margin-top:14px">${COMP_ST.map(s=>`<button class="pill${s===S.compSt?" active":""}" onclick="setCompSt('${s}')">${t("st"+s)}</button>`).join("")}</div>
+    <label>${t("admNote")}<input id="cpNote" maxlength="300" value="${esc(x.note||"")}"></label>
+    <div style="height:16px"></div><button class="btn primary" onclick="saveOp({type:'complaint_update',ref:${id},status:S.compSt,note:$('cpNote').value.trim()})">${ic("check")}${t("admSave")}</button>
+    <div style="height:10px"></div><button class="btn" onclick="delComp(${id})">${ic("x")}${t("admDel")}</button>`)}
+function setCompSt(s){S.compSt=s;document.querySelectorAll("#compSt .pill").forEach((b,i)=>b.classList.toggle("active",COMP_ST[i]===s))}
+function delComp(id){if(!confirm(t("admSure")))return;
+  if(S.waiting.some(o=>o.type==="complaint_add"&&o.id===id))inboxDo(ops=>ops.filter(o=>o.id!==id&&o.ref!==id));else saveOp({type:"complaint_delete",ref:id})}
 
 /* ---------------------------------------------------------------- payment notifications */
 /* The last payments this phone has seen are kept where the service worker can read them too.
