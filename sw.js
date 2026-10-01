@@ -2,7 +2,7 @@
    App files are fetched from the network first (so updates arrive at once) and fall back
    to the saved copy when offline. Fonts are kept once downloaded. data.json is not handled
    here - the page keeps its own last copy. Also shows the payment notifications. */
-const CACHE = "society-app-v13";
+const CACHE = "society-app-v14";
 const STATE = "society-state";          // written by the page: flat, last seen payments, passcode
 const SHELL = ["./", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
@@ -32,7 +32,7 @@ self.addEventListener("fetch", e => {
     e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => keep(e.request, r))));
     return;
   }
-  if (url.origin !== location.origin || url.pathname.endsWith("data.json")) return;
+  if (url.origin !== location.origin || url.pathname.endsWith("data.json") || url.pathname.endsWith("inbox.json")) return;
   e.respondWith(
     fetch(e.request).then(resp => keep(e.request, resp))
       .catch(() => caches.match(e.request, { ignoreSearch: true })
@@ -63,6 +63,11 @@ async function checkPayments() {
     const data = await decrypt(await resp.json(), st.pass);
     const flat = data.flats.find(f => String(f.no) === String(st.flat));
     if (!flat) return;
+    try {                                 // payments the committee entered on the phone, not yet in data.json
+      const box = await fetch("inbox.json?t=" + Date.now(), { cache: "no-store" });
+      if (box.ok) for (const o of (await decrypt(await box.json(), st.pass)).ops || [])
+        if (o.type === "payment" && String(o.flat) === String(st.flat) && !(data.applied || []).includes(o.id)) flat.paid[o.month] = +o.amount || 0;
+    } catch (e) { /* no inbox */ }
     const got = data.year === st.year
       ? flat.paid.map((v, m) => ({ m, a: v - (st.paid[m] || 0) })).filter(x => x.a > 0) : [];
     await store.put("pay-state", new Response(JSON.stringify({ ...st, year: data.year, paid: flat.paid })));
