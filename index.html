@@ -362,7 +362,16 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   admEvent:"कार्यक्रमाची तारीख (ऐच्छिक)",admDel:"हटवा",admSure:"नक्की?",admComp:"तक्रार नोंदवून घ्या",
   admNote:"सदस्यांसाठी टीप (ऐच्छिक)",admWait:"PC मध्ये अजून न गेलेल्या नोंदी",
   admWaitS:"PC ॲप उघडल्यावर या नोंदी Excel मध्ये जातात. चुकीची नोंद येथे हटवा.",admNone:"सर्व नोंदी PC मध्ये गेल्या आहेत.",
-  admOff:"या मोबाईलवरून टोकन काढा",
+  admOff:"या मोबाईलवरून टोकन काढा",admSavedC:"जतन झाले.",admRcpt:"पावती WhatsApp वर पाठवा",admName:"सदस्याचे नाव बदला",admDescE:"वर्णन",
+  cloudOn:"चालू · PC शिवाय",cloudOnS:"हिशोब या मोबाईलवरून चालतो. प्रत्येक नोंद लगेच ऑनलाइन जतन होते.",cloudGo:"PC शिवाय चालवा",
+  cloudHint:"यानंतर सर्व काही मोबाईलवरून: खर्च दुरुस्ती, सेटिंग्ज, नवीन वर्ष. PC वरील Excel पुढे अपडेट होणार नाही.",
+  cloudSure:"यापुढे हिशोब या मोबाईलवरून चालेल आणि PC वरील Excel अपडेट होणार नाही. पुढे जायचे?",
+  repTitle:"अहवाल व स्मरणपत्रे",repS:"WhatsApp वर पाठवा",repMonth:"मासिक अहवाल पाठवा",repNote:"टीप (ऐच्छिक)",repDues:"थकबाकी स्मरणपत्रे",repNoDues:"कोणाचीही थकबाकी नाही.",
+  setTitle:"सेटिंग्ज",setS:"दर, शिल्लक, UPI, नवीन वर्ष",setRate:"दरमहा मेंटेनन्स (₹)",setOpen:"वर्षाच्या सुरुवातीची बँक शिल्लक (₹)",setDue:"भरण्याची शेवटची तारीख (0 = नाही)",
+  setPayee:"खातेदाराचे नाव",setPhone:"समितीचा WhatsApp नंबर",setPay:"ऑनलाइन पेमेंट लिंक (ऐच्छिक)",setBad:"माहिती तपासा.",
+  xlTitle:"Excel डाउनलोड",xlS:"संपूर्ण वर्षाचा हिशोब",newYear:"नवीन वर्ष सुरू करा",
+  newYearSure:"{y} चा हिशोब संग्रहित होईल आणि {z} रिकामे सुरू होईल. आधी Excel डाउनलोड करा. पुढे जायचे?",
+  conName:"नाव",conRole:"काम",conPhone:"मोबाईल नंबर",conAdd:"संपर्क जोडा",
   payGot:"भरणा जमा झाला ✅",payGotB:"{m} महिन्याचे {a} जमा झाले. धन्यवाद!"},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
   offline:"No internet. Showing the last saved data.",hello:"Hello",flat:"Flat",outstanding:"Outstanding",
@@ -430,7 +439,16 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   admEvent:"Event date (optional)",admDel:"Delete",admSure:"Are you sure?",admComp:"Note a complaint",
   admNote:"Note for members (optional)",admWait:"Entries not yet in the PC workbook",
   admWaitS:"They go into Excel when the PC app is opened. Delete a wrong entry here.",admNone:"All entries are in the PC workbook.",
-  admOff:"Remove the token from this phone",
+  admOff:"Remove the token from this phone",admSavedC:"Saved.",admRcpt:"Send receipt on WhatsApp",admName:"Change the member's name",admDescE:"Description",
+  cloudOn:"On · without the PC",cloudOnS:"The accounts are kept from this phone. Every entry is saved online at once.",cloudGo:"Run without the PC",
+  cloudHint:"After this everything is done from the phone: correcting expenses, settings, new year. The Excel file on the PC is no longer updated.",
+  cloudSure:"From now on the accounts are kept from this phone and the Excel file on the PC is no longer updated. Continue?",
+  repTitle:"Reports and reminders",repS:"Send on WhatsApp",repMonth:"Send monthly report",repNote:"Note (optional)",repDues:"Dues reminders",repNoDues:"Nobody has dues.",
+  setTitle:"Settings",setS:"Rate, balance, UPI, new year",setRate:"Monthly maintenance (₹)",setOpen:"Bank balance at the start of the year (₹)",setDue:"Pay-by day of the month (0 = none)",
+  setPayee:"Payee name",setPhone:"Committee WhatsApp number",setPay:"Online payment link (optional)",setBad:"Check the values.",
+  xlTitle:"Download Excel",xlS:"The whole year's accounts",newYear:"Start a new year",
+  newYearSure:"{y} is archived and {z} starts empty. Download the Excel first. Continue?",
+  conName:"Name",conRole:"Work",conPhone:"Mobile number",conAdd:"Add contact",
   payGot:"Payment received ✅",payGotB:"{a} received for {m}. Thank you!"}
 };
 
@@ -569,7 +587,8 @@ function keepLink(){try{history.replaceState(null,"",location.pathname+location.
 async function loadData(){
   if(!window.crypto||!crypto.subtle)return fatal("insecure");
   let enc=null;
-  try{const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error(r.status);enc=await r.json();LS.set("enc",enc);S.offline=false}
+  if(LS.get("ghTok","")){try{const cur=await gh("data.json");if(cur)enc=unb(cur)}catch(e){}}      // committee phone: the newest copy, straight from GitHub
+  try{if(!enc){const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error(r.status);enc=await r.json()}LS.set("enc",enc);S.offline=false}
   catch(e){enc=LS.get("enc",null);S.offline=true}
   if(!enc)return fatal("fatal");
   S.enc=enc;S.loadedAt=Date.now();
@@ -583,7 +602,8 @@ async function openData(){
   S.data=data;
   if(!data){keepLink();return lockScreen(LS.get("opened",false)?"changed":"wrong")}
   LS.set("pass",S.pass);LS.set("opened",true);keepLink();
-  S.waiting=[];if(S.inbox){try{applyOps(data,(await decrypt(S.inbox,S.pass)).ops||[])}catch(e){}}
+  S.waiting=[];upgrade(data);
+  if(S.inbox&&!data.cloud){try{applyOps(data,(await decrypt(S.inbox,S.pass)).ops||[])}catch(e){}}
   if(S.accMonth===null){const cm=curMonth();let m=cm;while(m>0&&!S.data.months[m].entries.length)m--;S.accMonth=m;S.memMonth=cm}
   if(!me())return pickScreen();
   checkPayments();render();return true}
@@ -598,7 +618,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v14 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v15 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -734,7 +754,8 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
   <div class="card"><h3>${tile("receipt","c3","sm")}${t("expDetail")}</h3>${monthPills(sel,"setAccMonth")}
     <div class="chips" style="margin:10px 0 4px"><span class="chip info">${ic("down")}${money(mo.collected)}</span><span class="chip warn">${ic("up")}${money(mo.expenses)}</span><span class="chip ${mo.net>=0?"good":"bad"}">${mo.net>=0?t("saving"):t("deficit")} ${money(mo.net,true)}</span></div>
     ${mo.entries.length?`<div class="rows">${mo.entries.map(e=>{const col=meta(e.cat).color||"#6366f1";
-      return `<div class="rw"><span class="ct" style="background:${esc(col)}22;color:${esc(col)}">${ic(CAT_IC[e.cat]||"box")}</span><span class="tx"><b>${esc(plain(e[S.lang]||e.en))}</b><small>${fmtDate(e.date)}</small></span><span class="am num">${money(e.amount)}</span></div>`}).join("")}
+      const tag=cloud()?"button":"div";                                    // the committee taps a line to correct it
+      return `<${tag} class="rw"${tag==="button"?` onclick="expEdit(${e.id})"`:""}><span class="ct" style="background:${esc(col)}22;color:${esc(col)}">${ic(CAT_IC[e.cat]||"box")}</span><span class="tx"><b>${esc(plain(e[S.lang]||e.en))}</b><small>${fmtDate(e.date)}</small></span><span class="am num">${money(e.amount)}</span></${tag}>`}).join("")}
       <div class="rw"><span class="ct" style="background:var(--brandSoft);color:var(--brand);font-weight:800">Σ</span><span class="tx"><b>${t("total")} · ${monF(sel)}</b></span><span class="am num">${money(mo.expenses)}</span></div></div>`
       :`<div class="empty">${tile("receipt","c7")}${t("noExp")}</div>`}
     ${canEdit()?`<div style="height:12px"></div><button class="btn primary" onclick="expSheet()">${ic("pen")}${t("admExp")}</button>`:""}</div>
@@ -800,7 +821,7 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
     ${item("call","c4",t("contacts"),t("contactsS"),"contactsSheet()")}
     ${item("chat","c4",t("contact"),t("contactS"),"contactCommittee()")}</div></div>
   <div class="card"><div class="rows">
-    ${isAdmin()?item("pen","",t("admin"),canEdit()?t("admOnS",{n:n(S.waiting.length)}):t("notifOff"),"adminSheet()"):""}
+    ${isAdmin()?item("pen","",t("admin"),canEdit()?(S.data.cloud?t("cloudOn"):t("admOnS",{n:n(S.waiting.length)})):t("notifOff"),"adminSheet()"):""}
     ${isAdmin()?item("home","c5",t("changeFlat"),esc(f.name)+" · "+t("flat")+" "+n(f.no),"changeFlat()")
       :item("home","c5",esc(f.name)+" · "+t("flat")+" "+n(f.no),t("wrongFlat"),"wrongFlat()")}
     ${item("globe","c6",t("language"),t("languageS"),"toggleLang()")}
@@ -970,8 +991,15 @@ function contactsSheet(){const C=S.data.contacts||[];
   sheet(`${sheetHead("call","c4",t("contacts"),t("contactsS"))}<div style="height:8px"></div>
     ${C.length?`<div class="rows">${C.map((c,i)=>{const ph=String(c.phone).replace(/\D/g,"");
       return `<div class="rw"><span class="av" style="background:${AV[i%AV.length]}">${esc(initials(c.name))}</span><span class="tx"><b>${esc(c.name)}</b><small>${esc(c.role||"")}${c.role?" · ":""}${esc(ph.replace(/^91(?=\d{10}$)/,""))}</small></span>
-        <a class="cb" href="tel:+${ph}" aria-label="call">${ic("call")}</a><a class="cb w" href="https://wa.me/${ph}" target="_blank" rel="noopener" aria-label="WhatsApp">${ic("chat")}</a></div>`}).join("")}</div>`
-      :`<div class="empty">${tile("call","c4")}${t("noContacts")}</div>`}`)}
+        <a class="cb" href="tel:+${ph}" aria-label="call">${ic("call")}</a><a class="cb w" href="https://wa.me/${ph}" target="_blank" rel="noopener" aria-label="WhatsApp">${ic("chat")}</a>
+        ${cloud()?`<button class="chip bad" onclick="if(confirm(t('admSure')))saveOp({type:'contact_delete',ref:${c.id}},contactsSheet)">${ic("x")}</button>`:""}</div>`}).join("")}</div>`
+      :`<div class="empty">${tile("call","c4")}${t("noContacts")}</div>`}
+    ${cloud()?`<label>${t("conName")}<input id="ctName" maxlength="60"></label><label>${t("conRole")}<input id="ctRole" maxlength="60"></label>
+      <label>${t("conPhone")}<input id="ctPhone" type="tel" inputmode="numeric" maxlength="13"></label>
+      <div style="height:16px"></div><button class="btn primary" onclick="addContact()">${ic("check")}${t("conAdd")}</button>`:""}`)}
+function phone12(v){const p=String(v||"").replace(/\D/g,"");return p.length===10?"91"+p:p.length===12?p:""}
+function addContact(){const name=$("ctName").value.trim(),phone=phone12($("ctPhone").value);if(!name||!phone)return toast(t("setBad"));
+  saveOp({type:"contact_add",name,role:$("ctRole").value.trim(),phone},contactsSheet)}
 
 /* ---------------------------------------------------------------- receipts */
 function receiptNo(f,m){return "OGR/"+S.data.year+"/"+String(m+1).padStart(2,"0")+"/"+String(f.no).padStart(2,"0")}
@@ -988,7 +1016,7 @@ function receiptSheet(m){const f=me(),v=f.paid[m];if(!(v>0))return;
       <p>${t("rcptNote")}</p></div>
     <button class="btn wa" onclick="shareReceipt(${m})">${ic("share")}${t("rcptShare")}</button>
     <div style="height:10px"></div><button class="btn" onclick="receiptsSheet()">${t("receipts")}</button>`)}
-function receiptText(m){const f=me();
+function receiptText(m,f){f=f||me();
   return `🧾 *${t("receipt")}*\n🏢 *${bname()}*\n━━━━━━━━━━━━━━━━\n${t("rcptNo")}: ${receiptNo(f,m)}\n👤 ${t("member")}: ${f.name} (${t("flat")} ${n(f.no)})\n📅 ${t("month")}: ${monF(m)} ${n(S.data.year)}\n💰 ${t("amount")}: ${money(f.paid[m])}\n━━━━━━━━━━━━━━━━\n${t("rcptNote")}`}
 function shareReceipt(m){const text=receiptText(m);if(navigator.share)navigator.share({text}).catch(()=>{});else wa(text,"")}
 
@@ -1001,44 +1029,120 @@ function shareReceipt(m){const text=receiptText(m);if(navigator.share)navigator.
    workbook when it next runs and empties the inbox (mobile.py). */
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function canEdit(){return !!S.data&&!!S.data.repo&&isAdmin()&&!!LS.get("ghTok","")}
-async function ghInbox(method,body){
-  const r=await fetch("https://api.github.com/repos/"+LS.get("ghRepo","")+"/contents/inbox.json"+(body?"":"?t="+Date.now()),{method,cache:"no-store",
+function cloud(){return canEdit()&&!!S.data.cloud}
+/* a file of the app's repository: read it (null when missing) or, with a body, write it */
+async function gh(path,body){
+  const r=await fetch("https://api.github.com/repos/"+LS.get("ghRepo","")+"/contents/"+path+(body?"":"?t="+Date.now()),{method:body?"PUT":"GET",cache:"no-store",
     headers:{Authorization:"Bearer "+LS.get("ghTok",""),Accept:"application/vnd.github+json"},body:body?JSON.stringify(body):undefined});
   if(r.status===404&&!body)return null;
   if(!r.ok)throw new Error(String(r.status));
   return r.json()}
+function unb(cur){return JSON.parse(atob(cur.content.replace(/\s/g,"")))}
+function b64json(o){return btoa(JSON.stringify(o))}
+function stamp(){const d=new Date();return today()+"T"+[d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,"0")).join(":")}
 /* null = no inbox, undefined = could not find out (keep the saved one). The committee's phone
    asks GitHub itself, so it sees its own entries at once; the others read the published copy. */
 async function fetchInbox(){
-  if(LS.get("ghTok","")){try{const cur=await ghInbox("GET");return cur?JSON.parse(atob(cur.content.replace(/\s/g,""))):null}catch(e){}}
+  if(LS.get("ghTok","")){try{const cur=await gh("inbox.json");return cur?unb(cur):null}catch(e){}}
   try{const r=await fetch("inbox.json?t="+Date.now(),{cache:"no-store"});if(r.status===404)return null;return r.ok?await r.json():undefined}
   catch(e){return undefined}}
-function applyOps(D,ops){const done=new Set(D.applied||[]);S.waiting=ops.filter(o=>!done.has(o.id));D.complaints=D.complaints||[];
-  for(const o of S.waiting){
-    if(o.type==="payment"){const f=D.flats.find(x=>String(x.no)===String(o.flat)),M=D.months[o.month];if(!f||!M)continue;
-      const d=(+o.amount||0)-f.paid[o.month];f.paid[o.month]+=d;f.total+=d;M.collected+=d;M.net+=d;D.totals.collected+=d;D.balance+=d}
-    else if(o.type==="expense_add"){const M=D.months[o.month],a=+o.amount||0;if(!M)continue;
-      M.entries.push({date:o.date,amount:a,cat:o.cat,en:"• "+o.desc,mr:"• "+(o.mr||o.desc)});M.expenses+=a;M.net-=a;
-      M.categories[o.cat]=(M.categories[o.cat]||0)+a;D.category_year[o.cat]=(D.category_year[o.cat]||0)+a;D.totals.expenses+=a;D.balance-=a}
-    else if(o.type==="notice_add")D.notices.push({id:o.id,date:o.date,title:o.title,body:o.body||"",pinned:!!o.pinned,event:o.event||""});
-    else if(o.type==="notice_delete")D.notices=D.notices.filter(x=>x.id!==o.ref);
-    else if(o.type==="complaint_add")D.complaints.unshift({id:o.id,date:o.date,updated:o.date,flat:o.flat||"",title:o.title,status:"open",note:o.note||""});
-    else if(o.type==="complaint_update"){const c=D.complaints.find(x=>x.id===o.ref);if(c){if(o.status)c.status=o.status;c.note=o.note||"";c.updated=o.date}}
-    else if(o.type==="complaint_delete")D.complaints=D.complaints.filter(x=>x.id!==o.ref)}
-  D.notices.sort((a,b)=>(!!b.pinned-!!a.pinned)||b.id-a.id)}
+/* ---- the book: the same rules as the PC app (core.py), so the phone can keep the accounts.
+   Entered values: rate, opening balance, each flat's payments, the expense lines, notices,
+   contacts, complaints. Everything else in the data is worked out from them by recompute(). */
+const CAT_KW=[["sweeper",["sweeper","maid"]],["electricity",["electric"]],["cctv",["cctv"]],["water",["water bill","water tax"]],
+  ["motor",["motor","repair","plug","fuse"]],["cleaning",["clean","pocha","zadu","chember","chembur","chamber"]],["cash",["cash"]]];
+function catOf(desc){const d=String(desc||"").toLowerCase(),hit=CAT_KW.find(c=>c[1].some(k=>d.includes(k)));return hit?hit[0]:"other"}
+function mrDesc(desc){const d=String(desc).toLowerCase(),h=(...k)=>k.every(x=>d.includes(x));
+  return h("sweeper")||h("maid")?"👩‍🦯 झाडूवाली पगार":h("cctv")?"📺 CCTV रिचार्ज":h("electric")?"⚡ वीज बिल":h("water bill")||h("water tax")?"🚰 पाणी बिल"
+    :h("motor","plug")?"🔧 पाण्याच्या मोटरचा प्लग":h("motor","fuse")?"🔧 मोटर फ्यूज दुरुस्ती":h("motor")?"🔧 पाण्याच्या मोटरची दुरुस्ती":h("fuse")?"🔌 फ्यूज खरेदी"
+    :h("chember")||h("chembur")||h("chamber")?"🚿 चेंबर सफाई":h("zadu","cleaner")?"🧹 झाडू व क्लिनर खरेदी":h("zadu","pocha")?"🧹 झाडू व पोछा खरेदी":h("pocha")?"🧹 पोछा खरेदी":h("zadu")?"🧹 झाडू खरेदी"
+    :h("cash")?"💵 रोख व्यवहार":h("other")?"📦 इतर खर्च":"📝 "+desc}
+function dev(x){return String(x).replace(/\d/g,d=>"०१२३४५६७८९"[d])}
+function inr(v,lang,sign){v=Math.round(v||0);const s=grp(v);return (v<0?"-":sign?"+":"")+"₹"+(lang==="mr"?dev(s):s)}
+function insights(D,lang){const mr=lang==="mr",mi=D.year===NOW.getFullYear()?NOW.getMonth():11,R=(v,s)=>inr(v,lang,s),MN=i=>MON[lang+"F"][i],N=x=>mr?dev(x):String(x);
+  let act=D.months.map((m,i)=>Object.assign({i},m)).filter(m=>m.collected||m.expenses);if(!act.length)return[];
+  const first=act[0];act=act.filter(m=>m.i<=mi);if(!act.length)act=[first];
+  const cur=D.months[mi],prev=mi>0?D.months[mi-1]:null,out=[],add=(icon,kind,a,b)=>out.push({icon,kind,text:mr?a:b});
+  const ec=cur.categories.electricity||0,ep=prev?prev.categories.electricity||0:0;
+  if(ec&&ep){const ch=(ec-ep)/ep*100,up=ch>0,p=N(Math.abs(Math.round(ch)));
+    if(Math.abs(ch)>=8)add("⚡",up?"warn":"good",`${MN(mi)} मध्ये वीज बिल ${R(ec)} — ${MN(mi-1)} पेक्षा ${p}% ${up?"जास्त":"कमी"}.`,`Electricity bill in ${MN(mi)} is ${R(ec)}, ${p}% ${up?"higher":"lower"} than ${MN(mi-1)}.`)}
+  let streak=0;for(let k=act.length-1;k>=0&&act[k].net<0;k--)streak++;
+  if(streak>=2)add("📉","bad",`सलग ${N(streak)} महिने खर्च जमेपेक्षा जास्त आहे (तूट).`,`Expenses exceeded collection for ${streak} months in a row.`);
+  else if(act[act.length-1].net>=0&&prev&&prev.net<0)add("📈","good",`${MN(mi)} मध्ये पुन्हा बचत झाली: ${R(cur.net,true)}.`,`${MN(mi)} is back in surplus: ${R(cur.net,true)}.`);
+  const cy=Object.entries(D.category_year),tot=cy.reduce((s,x)=>s+x[1],0);
+  if(tot){const top=cy.reduce((a,b)=>b[1]>a[1]?b:a),c=D.category_meta[top[0]]||{},p=N(Math.round(top[1]/tot*100));
+    add(c.emoji||"📦","info",`वर्षभरात सर्वात मोठा खर्च: ${c.mr} — ${R(top[1])} (एकूण खर्चाच्या ${p}%).`,`Biggest expense this year: ${c.en} at ${R(top[1])} (${p}% of all spending).`)}
+  const left=D.flats.filter(f=>f.paid[mi]<D.rate).length;
+  if(left)add("⏳","warn",`${MN(mi)} साठी ${N(left)} सदनिकांचे पैसे बाकी आहेत (${R(left*D.rate)}).`,`${left} flats still pending for ${MN(mi)} (about ${R(left*D.rate)}).`);
+  else add("🎉","good",`${MN(mi)} साठी सर्व सदनिकांचे पैसे जमा!`,`Every flat has paid for ${MN(mi)}!`);
+  const ai=act.reduce((s,m)=>s+m.collected,0)/act.length,ao=act.reduce((s,m)=>s+m.expenses,0)/act.length,proj=D.balance+(11-mi)*(ai-ao);
+  add("🔮",proj>=0?"good":"bad",`सरासरी जमा ${R(ai)} / खर्च ${R(ao)} दरमहा. याच वेगाने डिसेंबरअखेर शिल्लक अंदाजे ${R(proj)}.`,`Average ${R(ai)} in / ${R(ao)} out per month. At this pace the year-end balance would be about ${R(proj)}.`);
+  if(D.balance<ao)add("🚨","bad",`बँक शिल्लक (${R(D.balance)}) एका महिन्याच्या खर्चापेक्षा कमी आहे — वसुली वाढवणे गरजेचे.`,`Bank balance (${R(D.balance)}) is below one month of expenses. Collection needs attention.`);
+  return out}
+/* data published by the PC app has no opening balance, expense ids or plain expense names: fill them in */
+function upgrade(D){D.complaints=D.complaints||[];D.contacts=D.contacts||[];D.applied=D.applied||[];
+  if(D.opening===undefined)D.opening=D.balance-D.totals.collected+D.totals.expenses;
+  D.months.forEach((M,m)=>M.entries.forEach((e,i)=>{if(e.desc===undefined)e.desc=plain(e.en||"");if(!e.id)e.id=(m+1)*1000+i}));
+  D.contacts.forEach((c,i)=>{if(!c.id)c.id=i+1})}
+function recompute(D){const meta=D.category_meta||{};D.category_year={};let tc=0,te=0;
+  D.flats.forEach(f=>{f.total=f.paid.reduce((s,v)=>s+v,0)});
+  D.months.forEach((M,m)=>{M.collected=D.flats.reduce((s,f)=>s+f.paid[m],0);M.expenses=0;M.categories={};
+    M.entries.forEach(e=>{e.cat=catOf(e.desc);e.en=((meta[e.cat]||{}).emoji||"📦")+" "+e.desc;e.mr=e.mrx?"📝 "+e.mrx:mrDesc(e.desc);
+      M.expenses+=e.amount;M.categories[e.cat]=(M.categories[e.cat]||0)+e.amount;D.category_year[e.cat]=(D.category_year[e.cat]||0)+e.amount});
+    M.net=M.collected-M.expenses;tc+=M.collected;te+=M.expenses});
+  D.totals={collected:tc,expenses:te,flats:D.flats.length};D.balance=D.opening+tc-te;
+  D.notices.sort((a,b)=>(!!b.pinned-!!a.pinned)||b.id-a.id);
+  D.insights={mr:insights(D,"mr"),en:insights(D,"en")}}
+/* one entry of the committee, made on the entered values only */
+function applyOne(D,o){const find=()=>{for(const M of D.months){const i=M.entries.findIndex(e=>e.id===o.ref);if(i>=0)return [M,i]}return null};
+  if(o.type==="payment"){const f=D.flats.find(x=>String(x.no)===String(o.flat));if(f&&o.month>=0&&o.month<12)f.paid[o.month]=+o.amount||0}
+  else if(o.type==="expense_add"){const M=D.months[o.month];if(M)M.entries.push({id:o.id,date:o.date,amount:+o.amount||0,desc:o.desc,mrx:o.mr||""})}
+  else if(o.type==="expense_update"){const hit=find();if(hit){const e=hit[0].entries[hit[1]];if(e.desc!==o.desc)e.mrx="";e.desc=o.desc;e.date=o.date;e.amount=+o.amount||0}}
+  else if(o.type==="expense_delete"){const hit=find();if(hit)hit[0].entries.splice(hit[1],1)}
+  else if(o.type==="notice_add")D.notices.push({id:o.id,date:o.date,title:o.title,body:o.body||"",pinned:!!o.pinned,event:o.event||""});
+  else if(o.type==="notice_delete")D.notices=D.notices.filter(x=>x.id!==o.ref);
+  else if(o.type==="complaint_add")D.complaints.unshift({id:o.id,date:o.date,updated:o.date,flat:o.flat||"",title:o.title,status:"open",note:o.note||""});
+  else if(o.type==="complaint_update"){const c=D.complaints.find(x=>x.id===o.ref);if(c){if(o.status)c.status=o.status;c.note=o.note||"";c.updated=o.date}}
+  else if(o.type==="complaint_delete")D.complaints=D.complaints.filter(x=>x.id!==o.ref);
+  else if(o.type==="contact_add")D.contacts.push({id:o.id,name:o.name,role:o.role||"",phone:o.phone});
+  else if(o.type==="contact_delete")D.contacts=D.contacts.filter(x=>x.id!==o.ref);
+  else if(o.type==="flat_name"){const f=D.flats.find(x=>String(x.no)===String(o.flat));if(f)f.name=o.name}
+  else if(o.type==="settings"){D.rate=o.rate;D.opening=o.opening;D.due_day=o.due_day;Object.assign(D.contact,{upi:o.upi,payee:o.payee,phone:o.phone,pay_url:o.pay_url})}
+  else if(o.type==="new_year"){recompute(D);D.opening=D.balance;D.year+=1;D.flats.forEach(f=>f.paid=f.paid.map(()=>0));D.months.forEach(M=>M.entries=[])}}
+/* entries still waiting for the PC, laid over the published data (not needed once the phone is in charge) */
+function applyOps(D,ops){const done=new Set(D.applied||[]);S.waiting=ops.filter(o=>!done.has(o.id));
+  if(!S.waiting.length)return;
+  S.waiting.forEach(o=>applyOne(D,o));recompute(D)}
 /* read the inbox, change it, write it back; tried again when the PC wrote in between */
 async function changeInbox(fn){const done=S.data.applied||[];
-  for(let i=0;;i++){const cur=await ghInbox("GET");
-    const ops=cur?(await decrypt(JSON.parse(atob(cur.content.replace(/\s/g,""))),S.pass)).ops||[]:[];
+  for(let i=0;;i++){const cur=await gh("inbox.json");
+    const ops=cur?(await decrypt(unb(cur),S.pass)).ops||[]:[];
     const enc=await encrypt({v:1,ops:fn(ops.filter(o=>!done.includes(o.id)))});
-    try{await ghInbox("PUT",Object.assign({message:"Entry from the phone",content:btoa(JSON.stringify(enc))},cur?{sha:cur.sha}:{}));S.inbox=enc;LS.set("inbox",enc);return}
+    try{await gh("inbox.json",Object.assign({message:"Entry from the phone",content:b64json(enc)},cur?{sha:cur.sha}:{}));S.inbox=enc;LS.set("inbox",enc);return}
     catch(e){if(i>=2||(e.message!=="409"&&e.message!=="422"))throw e}}}
-async function inboxDo(fn,after){if(!canEdit()||S.busy)return;S.busy=true;
-  try{await changeInbox(fn);closeSheet();await openData();toast(t("admSaved"));if(after)after()}
+/* the phone is in charge: read data.json, change it, work out the figures, write it back */
+async function changeData(fn){
+  for(let i=0;;i++){const cur=await gh("data.json");if(!cur)throw new Error("404");
+    const D=await decrypt(unb(cur),S.pass);upgrade(D);fn(D);recompute(D);D.updated=stamp();D.rev=(D.rev||0)+1;
+    const enc=await encrypt(D);enc.updated=D.updated;
+    try{await gh("data.json",{message:"Entry from the phone",content:b64json(enc),sha:cur.sha});S.enc=enc;LS.set("enc",enc);return}
+    catch(e){if(i>=2||e.message!=="409")throw e}}}
+async function run(job,after){if(!canEdit()||S.busy)return;S.busy=true;
+  try{await job();closeSheet();await openData();toast(t(S.data.cloud?"admSavedC":"admSaved"));if(after)after()}
   catch(e){toast(t(e.message==="401"||e.message==="403"?"admTokBad":"admFail"))}
   finally{S.busy=false}}
-function saveOp(op){op.id=Date.now();op.date=op.date||today();return inboxDo(ops=>ops.concat(op))}
-function undoOp(id){if(confirm(t("admSure")))inboxDo(ops=>ops.filter(o=>o.id!==id),adminSheet)}
+function saveOp(op,after){op.id=Date.now();op.date=op.date||today();
+  return run(()=>S.data.cloud?changeData(D=>applyOne(D,op)):changeInbox(ops=>ops.concat(op)),after)}
+function undoOp(id){if(confirm(t("admSure")))run(()=>changeInbox(ops=>ops.filter(o=>o.id!==id)),adminSheet)}
+/* From here on the phone keeps the accounts: cloud.json tells the PC app to leave data.json
+   alone, the waiting entries go into the data, and the inbox is emptied. */
+function takeover(){if(!confirm(t("cloudSure")))return;
+  return run(async()=>{const mark=await gh("cloud.json");
+    await gh("cloud.json",Object.assign({message:"The phone keeps the accounts",content:b64json({cloud:true,since:stamp()})},mark?{sha:mark.sha}:{}));
+    const box=await gh("inbox.json"),ops=box?(await decrypt(unb(box),S.pass)).ops||[]:[];
+    await changeData(D=>{const done=new Set(D.applied);ops.filter(o=>!done.has(o.id)).forEach(o=>applyOne(D,o));D.cloud=true;D.applied=[]});
+    if(box&&ops.length)await gh("inbox.json",{message:"Inbox emptied",content:b64json(await encrypt({v:1,ops:[]})),sha:box.sha});
+    S.inbox=null;LS.set("inbox",null)},adminSheet)}
 
 function adminSheet(){if(!isAdmin())return;
   if(!S.data.repo)return sheet(`${sheetHead("pen","",t("admin"))}<p style="font-weight:500">${t("admNoRepo")}</p>`);
@@ -1046,9 +1150,16 @@ function adminSheet(){if(!isAdmin())return;
     <form onsubmit="saveTok(event)"><label>${t("admTok")}<input id="tokIn" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ghp_…"></label>
     ${S.data.admin_lock?`<label>${t("pinTitle")}<input id="tokPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>`:""}
     <div style="height:16px"></div><button class="btn primary" type="submit">${ic("check")}${t("admStart")}</button></form>`);
-  sheet(`${sheetHead("pen","",t("admWait"),t("admWaitS"))}<div style="height:8px"></div>
-    ${S.waiting.length?`<div class="rows">${S.waiting.map(o=>`<div class="rw"><span class="tx"><b style="white-space:normal">${esc(opLabel(o))}</b><small>${fmtDate(o.date)}</small></span><button class="chip bad" onclick="undoOp(${o.id})">${ic("x")}${t("admDel")}</button></div>`).join("")}</div>`
-      :`<div class="empty">${tile("check","c5")}${t("admNone")}</div>`}
+  const item=(icn,c,title,sub,fn)=>`<button class="rw" onclick="${fn}">${tile(icn,c)}<span class="tx"><b>${title}</b><small>${sub}</small></span><span class="go">${ic("next")}</span></button>`;
+  const D=S.data;
+  sheet(`${sheetHead("pen","",t("admin"),D.cloud?t("cloudOnS"):"")}<div class="rows" style="margin-top:8px">
+      ${item("chat","c4",t("repTitle"),t("repS"),"reportsSheet()")}
+      ${D.cloud?item("wallet","",t("setTitle"),t("setS"),"settingsSheet()"):""}
+      ${item("down","c5",t("xlTitle"),t("xlS"),"excelDownload()")}</div>
+    ${D.cloud?"":`<h3 style="margin:18px 0 2px;font-size:15px">${t("admWait")}</h3><p class="small muted">${t("admWaitS")}</p>
+      ${S.waiting.length?`<div class="rows">${S.waiting.map(o=>`<div class="rw"><span class="tx"><b style="white-space:normal">${esc(opLabel(o))}</b><small>${fmtDate(o.date)}</small></span><button class="chip bad" onclick="undoOp(${o.id})">${ic("x")}${t("admDel")}</button></div>`).join("")}</div>`
+        :`<div class="empty">${tile("check","c5")}${t("admNone")}</div>`}
+      <div style="height:14px"></div><button class="btn primary" onclick="takeover()">${ic("phone")}${t("cloudGo")}</button><p class="small muted" style="margin-top:8px">${t("cloudHint")}</p>`}
     <div style="height:14px"></div><button class="btn" onclick="tokOff()">${ic("lock")}${t("admOff")}</button>`)}
 function opLabel(o){const f=S.data.flats.find(x=>String(x.no)===String(o.flat));
   return o.type==="payment"?`${f?f.name:t("flat")+" "+o.flat} · ${mon(o.month)} · ${+o.amount?money(o.amount):t("admClear")}`
@@ -1059,7 +1170,7 @@ function opLabel(o){const f=S.data.flats.find(x=>String(x.no)===String(o.flat));
 async function saveTok(ev){ev.preventDefault();const tok=$("tokIn").value.trim();if(!tok)return;
   if(S.data.admin_lock&&!(await pinOk($("tokPin").value.replace(/\s/g,""))))return toast(t("pinWrong"));
   LS.set("ghTok",tok);LS.set("ghRepo",S.data.repo);
-  try{await ghInbox("GET")}catch(e){LS.del("ghTok");return toast(t(e.message==="401"||e.message==="403"?"admTokBad":"admFail"))}
+  try{await gh("inbox.json")}catch(e){LS.del("ghTok");return toast(t(e.message==="401"||e.message==="403"?"admTokBad":"admFail"))}
   closeSheet();await loadData();toast(t("admOn"))}
 function tokOff(){if(!confirm(t("admSure")))return;LS.del("ghTok");closeSheet();render()}
 
@@ -1067,7 +1178,12 @@ function payEntry(i){const D=S.data,f=D.flats[i],m=S.memMonth,v=f.paid[m];
   sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)} · ${monF(m)} ${n(D.year)}</p></div></div>
     <label>${t("amount")} (₹)<input id="peAmt" type="number" inputmode="numeric" min="0" step="1" value="${v>0?v:D.rate}"></label>
     <div class="chips" style="margin:12px 0 16px">${[D.rate,D.rate*2,D.rate*3,0].map(a=>`<button class="chip ${a?"info":"bad"}" style="padding:8px 13px;font-size:13px" onclick="$('peAmt').value=${a}">${a?money(a):t("admClear")}</button>`).join("")}</div>
-    <button class="btn primary" onclick="savePay(${i})">${ic("check")}${t("admSave")}</button><div style="height:10px"></div><button class="btn" onclick="flatSheet(${i})">${t("details")}</button>`)}
+    <button class="btn primary" onclick="savePay(${i})">${ic("check")}${t("admSave")}</button>
+    ${v>0?`<div style="height:10px"></div><button class="btn wa" onclick="wa(receiptText(${m},S.data.flats[${i}]),'')">${ic("receipt")}${t("admRcpt")}</button>`:""}
+    <div style="height:10px"></div><button class="btn" onclick="flatSheet(${i})">${t("details")}</button>
+    ${cloud()?`<div style="height:10px"></div><button class="btn" onclick="renameFlat(${i})">${ic("user")}${t("admName")}</button>`:""}`)}
+function renameFlat(i){const f=S.data.flats[i],name=(prompt(t("admName"),f.name)||"").trim().slice(0,60);
+  if(name&&name!==f.name)saveOp({type:"flat_name",flat:f.no,name})}
 function savePay(i){const v=$("peAmt").value.trim(),a=Math.round(+v);if(v===""||!(a>=0))return toast(t("needAmt"));
   saveOp({type:"payment",flat:S.data.flats[i].no,month:S.memMonth,amount:a})}
 
@@ -1094,7 +1210,7 @@ function saveNotice(){const title=$("ntTitle").value.trim();if(!title)return toa
   saveOp({type:"notice_add",title,body:$("ntBody").value.trim(),pinned:$("ntPin").checked,event:$("ntEvent").value})}
 /* a notice / complaint that has not reached the PC yet is simply taken back out of the inbox */
 function delNotice(id){if(!confirm(t("admSure")))return;
-  if(S.waiting.some(o=>o.type==="notice_add"&&o.id===id))inboxDo(ops=>ops.filter(o=>o.id!==id));else saveOp({type:"notice_delete",ref:id})}
+  if(S.waiting.some(o=>o.type==="notice_add"&&o.id===id))run(()=>changeInbox(ops=>ops.filter(o=>o.id!==id)));else saveOp({type:"notice_delete",ref:id})}
 
 const COMP_ST=["open","progress","done"];
 function compNew(){sheet(`${sheetHead("pen","c2",t("admComp"))}
@@ -1112,7 +1228,104 @@ function compEdit(id){const x=(S.data.complaints||[]).find(c=>c.id===id);if(!x)r
     <div style="height:10px"></div><button class="btn" onclick="delComp(${id})">${ic("x")}${t("admDel")}</button>`)}
 function setCompSt(s){S.compSt=s;document.querySelectorAll("#compSt .pill").forEach((b,i)=>b.classList.toggle("active",COMP_ST[i]===s))}
 function delComp(id){if(!confirm(t("admSure")))return;
-  if(S.waiting.some(o=>o.type==="complaint_add"&&o.id===id))inboxDo(ops=>ops.filter(o=>o.id!==id&&o.ref!==id));else saveOp({type:"complaint_delete",ref:id})}
+  if(S.waiting.some(o=>o.type==="complaint_add"&&o.id===id))run(()=>changeInbox(ops=>ops.filter(o=>o.id!==id&&o.ref!==id)));else saveOp({type:"complaint_delete",ref:id})}
+
+/* ---- only when the phone is in charge: correct an expense, settings, new year */
+function expEdit(id){let e=null;S.data.months.forEach(M=>M.entries.forEach(x=>{if(x.id===id)e=x}));if(!e||!cloud())return;
+  sheet(`${sheetHead("receipt","c3",t("expDetail"),fmtDate(e.date))}
+    <label>${t("admDescE")}<input id="eeDesc" maxlength="120" value="${esc(e.desc)}"></label>
+    <label>${t("date")}<input id="eeDate" type="date" value="${esc(e.date)}"></label>
+    <label>${t("amount")} (₹)<input id="eeAmt" type="number" inputmode="decimal" min="1" value="${e.amount}"></label>
+    <div style="height:16px"></div><button class="btn primary" onclick="saveExpEdit(${id})">${ic("check")}${t("admSave")}</button>
+    <div style="height:10px"></div><button class="btn" onclick="if(confirm(t('admSure')))saveOp({type:'expense_delete',ref:${id}})">${ic("x")}${t("admDel")}</button>`)}
+function saveExpEdit(id){const desc=$("eeDesc").value.trim(),a=+$("eeAmt").value,d=$("eeDate").value;if(!desc||!(a>0)||!d)return toast(t("needAmt"));
+  saveOp({type:"expense_update",ref:id,desc,date:d,amount:a})}
+function settingsSheet(){if(!cloud())return;const D=S.data,c=D.contact,num='type="number" inputmode="decimal" min="0"';
+  const f=(id,label,val,attr)=>`<label>${label}<input id="${id}" value="${esc(val??"")}" ${attr||""}></label>`;
+  sheet(`${sheetHead("wallet","",t("setTitle"),t("setS"))}
+    ${f("stRate",t("setRate"),D.rate,num)}${f("stOpen",t("setOpen"),D.opening,'type="number" inputmode="decimal"')}${f("stDue",t("setDue"),D.due_day,num+' max="28"')}
+    ${f("stUpi","UPI ID",c.upi,'autocapitalize="off" spellcheck="false"')}${f("stPayee",t("setPayee"),c.payee,'maxlength="60"')}
+    ${f("stPhone",t("setPhone"),String(c.phone||"").replace(/^91(?=\d{10}$)/,""),'type="tel" inputmode="numeric" maxlength="13"')}${f("stPay",t("setPay"),c.pay_url,'inputmode="url" autocapitalize="off"')}
+    <div style="height:16px"></div><button class="btn primary" onclick="saveSettings()">${ic("check")}${t("admSave")}</button>
+    <div style="height:10px"></div><button class="btn" onclick="newYear()">${ic("cal")}${t("newYear")}</button>`)}
+function saveSettings(){const v=id=>$(id).value.trim(),rate=+v("stRate"),opening=+v("stOpen"),due=Math.round(+v("stDue")),upi=v("stUpi"),ph=v("stPhone"),pay=v("stPay");
+  if(!(rate>0)||v("stOpen")===""||!isFinite(opening)||!(due>=0&&due<=28)||(upi&&!/^[\w.\-]{2,}@[A-Za-z][\w.\-]+$/.test(upi))||(ph&&!phone12(ph))||(pay&&!/^https:\/\/\S+$/.test(pay)))return toast(t("setBad"));
+  saveOp({type:"settings",rate,opening,due_day:due,upi,payee:v("stPayee")||S.data.building,phone:phone12(ph),pay_url:pay})}
+/* the finished year stays in the repository as archive-<year>.json (a copy of data.json) */
+function newYear(){const D=S.data;if(!cloud()||!confirm(t("newYearSure",{y:n(D.year),z:n(D.year+1)})))return;
+  run(async()=>{const name="archive-"+D.year+".json",old=await gh(name),cur=await gh("data.json");
+    await gh(name,Object.assign({message:"Archive "+D.year,content:cur.content.replace(/\s/g,"")},old?{sha:old.sha}:{}));
+    await changeData(d=>applyOne(d,{type:"new_year"}))})}
+
+/* ---- reports for WhatsApp, worded like the PC app's. Dues are counted up to the current month. */
+function owes(f){return Math.max(0,Math.round(S.data.rate*dueTo()-f.total))}
+function reportText(m,note){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],R=(v,s)=>inr(v,L0,s),N=v=>mr?dev(v):String(v),x=(a,b)=>mr?a:b,d=new Date();
+  const bar="━━━━━━━━━━━━━━━━━━━━━━━━━━━━",line="   ─────────────────────",dues=D.flats.filter(f=>owes(f)>0),ok=v=>v>=0?"✅":"❌";
+  const L=[`🏢 *${bname()}*`,bar,`📅 *${monF(m)} ${N(D.year)} - ${x("तपशीलवार अहवाल","Monthly Report")}*`,bar,"",x("🙏 *प्रिय सोसायटी सदस्यांनो,*","🙏 *Dear Society Members,*"),"",
+    `💰 *${x("बँक खात्यात सध्याची शिल्लक","Current bank balance")}:* ${R(D.balance)}`,`📥 *${x("जमा","Collected")}:* ${R(M.collected)}`,`📤 *${x("खर्च","Expenses")}:* ${R(M.expenses)}`,
+    `💰 *${x("निकाल","Result")}:* `+(M.net>=0?`✅ ${x("बचत","Savings")} ${R(M.net,true)}`:`❌ ${x("तूट","Deficit")} ${R(M.net)}`),"",x("📋 *खर्चाचा तपशील:*","📋 *Expense details:*")];
+  if(!M.entries.length)L.push(x("   (या महिन्यात खर्च नोंदवलेला नाही)","   (no expenses recorded this month)"));
+  M.entries.forEach((e,i)=>L.push(`   ${i===M.entries.length-1?"└─":"├─"} ${e[L0]||e.en}: ${R(e.amount)}`));
+  L.push(line,`   💵 *${x("एकूण","Total")}:* ${R(M.expenses)}`);
+  if(note)L.push("",`⚠️ *${x("टीप","Note")}:* ${note}`);
+  L.push("",x(`📌 *थकबाकी असलेल्या सदनिका (${N(dues.length)}):*`,`📌 *Flats with pending dues (${dues.length}):*`));
+  if(!dues.length)L.push(x("   ✅ सर्व सदनिकांचे पैसे जमा झाले आहेत.","   ✅ All flats are fully paid."));
+  dues.forEach(f=>L.push(`   • ${t("flat")} ${N(f.no)} - ${f.name}: ${R(owes(f))}`));
+  L.push(`   💰 *${x("एकूण थकबाकी","Total outstanding")}:* ${R(dues.reduce((s,f)=>s+owes(f),0))}`,"",`📊 *${N(D.year)} ${x("सारांश","summary")} (${mon(0)} - ${mon(m)}):*`);
+  let tc=0,te=0;
+  for(let k=0;k<=m;k++){const K=D.months[k];tc+=K.collected;te+=K.expenses;
+    L.push(`   ${mon(k)}: ${x("जमा","In")} ${R(K.collected)} | ${x("खर्च","Out")} ${R(K.expenses)} | ${ok(K.net)} ${R(K.net,true)}`)}
+  L.push(line,`   *${x("एकूण","Total")}:* ${x("जमा","In")} ${R(tc)} | ${x("खर्च","Out")} ${R(te)} | ${ok(tc-te)} ${R(tc-te,true)}`,"",
+    x("🙏 *आपल्या सहकार्याबद्दल धन्यवाद!*","🙏 *Thank you for your cooperation!*"),x("📞 काही शंका असल्यास संपर्क करा.","📞 Contact the committee for any queries."),"",
+    bar,`🏢 *${bname()}${x(" समिती"," Committee")}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
+  return L.join("\n")}
+function reminderText(f){const D=S.data,mr=S.lang==="mr",R=v=>inr(v,S.lang),x=(a,b)=>mr?a:b;
+  const months=f.paid.map((v,m)=>m<dueTo()&&v<D.rate?mon(m):"").filter(Boolean).join(", ")||"-";
+  return [`🏢 *${bname()}*`,"",x(`🙏 नमस्कार *${f.name}* जी (फ्लॅट ${dev(f.no)}),`,`🙏 Hello *${f.name}* (Flat ${f.no}),`),"",
+    `${x("आपली मेंटेनन्स थकबाकी","Your pending maintenance")}: *${R(owes(f))}*`,`📅 ${x("बाकी महिने","Pending months")}: ${months}`,`💰 ${x("दरमहा","Monthly rate")}: ${R(D.rate)}`,"",
+    x("कृपया लवकरात लवकर भरणा करावा ही विनंती. 🙏","Kindly clear the dues at the earliest. 🙏"),"",`— ${bname()}${x(" समिती"," Committee")}`].join("\n")}
+function reportsSheet(){const D=S.data,last=lastMonth(),dues=D.flats.map((f,i)=>({f,i,o:owes(f)})).filter(x=>x.o>0);
+  sheet(`${sheetHead("chat","c4",t("repTitle"),t("repS"))}
+    <label>${t("month")}<select id="rpMonth">${D.months.map((_,m)=>m<=last?`<option value="${m}"${m===curMonth()?" selected":""}>${monF(m)}</option>`:"").join("")}</select></label>
+    <label>${t("repNote")}<input id="rpNote" maxlength="200"></label>
+    <div style="height:16px"></div><button class="btn wa" onclick="wa(reportText(+$('rpMonth').value,$('rpNote').value.trim()),'')">${ic("chat")}${t("repMonth")}</button>
+    <div style="height:10px"></div><button class="btn" onclick="sendPending(+$('rpMonth').value)">${ic("list")}${t("pendSend")}</button>
+    <h3 style="margin:18px 0 2px;font-size:15px">${t("repDues")}</h3>
+    ${dues.length?`<div class="rows">${dues.map(x=>`<div class="rw">${avatar(x.f,x.i)}<span class="tx"><b>${esc(x.f.name)}</b><small>${t("flat")} ${n(x.f.no)} · ${money(x.o)}</small></span><button class="chip good" onclick="wa(reminderText(S.data.flats[${x.i}]),'')">${ic("chat")}WhatsApp</button></div>`).join("")}</div>`
+      :`<div class="empty">${tile("check","c5")}${t("repNoDues")}</div>`}`)}
+
+/* ---- Excel file of the year, made on the phone (.xlsx = a zip of small XML files, stored uncompressed) */
+function crc32(u){let crc=-1;for(let i=0;i<u.length;i++){let c=(crc^u[i])&255;for(let k=0;k<8;k++)c=c&1?(c>>>1)^0xEDB88320:c>>>1;crc=(crc>>>8)^c}return (crc^-1)>>>0}
+function zipBlob(files,type){const te=new TextEncoder(),parts=[],dir=[];let off=0;
+  for(const f of files){const nm=te.encode(f[0]),dat=te.encode(f[1]),crc=crc32(dat),h=new DataView(new ArrayBuffer(30)),c=new DataView(new ArrayBuffer(46));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);h.setUint32(14,crc,true);h.setUint32(18,dat.length,true);h.setUint32(22,dat.length,true);h.setUint16(26,nm.length,true);
+    c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);c.setUint32(16,crc,true);c.setUint32(20,dat.length,true);c.setUint32(24,dat.length,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+    parts.push(h.buffer,nm,dat);dir.push(c.buffer,nm);off+=30+nm.length+dat.length}
+  const len=dir.reduce((s,p)=>s+p.byteLength,0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,len,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...dir,e.buffer],{type})}
+function xlsxBlob(sheets){const X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',ex=s=>String(s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+  const col=i=>{let s="";for(i++;i>0;i=Math.floor((i-1)/26))s=String.fromCharCode(65+(i-1)%26)+s;return s};
+  const ws=rows=>X+'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+rows.map((r,y)=>`<row r="${y+1}">`+r.map((v,i)=>v===""||v==null?"":
+    typeof v==="number"?`<c r="${col(i)}${y+1}"><v>${v}</v></c>`:`<c r="${col(i)}${y+1}" t="inlineStr"><is><t xml:space="preserve">${ex(v)}</t></is></c>`).join("")+"</row>").join("")+"</sheetData></worksheet>";
+  const files=[["[Content_Types].xml",X+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+      +sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")+"</Types>"],
+    ["_rels/.rels",X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ["xl/workbook.xml",X+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
+      +sheets.map((s,i)=>`<sheet name="${ex(s[0])}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")+"</sheets></workbook>"],
+    ["xl/_rels/workbook.xml.rels",X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      +sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")+"</Relationships>"]];
+  sheets.forEach((s,i)=>files.push([`xl/worksheets/sheet${i+1}.xml`,ws(s[1])]));
+  return zipBlob(files,"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
+function excelSheets(D){const meta=D.category_meta||{};
+  const coll=[["Flat","Name",...MON.en,"Total"],...D.flats.map(f=>[f.no,f.name,...f.paid,f.total]),["","Total",...D.months.map(M=>M.collected),D.totals.collected]];
+  const exp=[["Month","Date","Description","Category","Amount"]];
+  D.months.forEach((M,m)=>M.entries.forEach(e=>exp.push([MON.enF[m],e.date,e.desc,(meta[e.cat]||{}).en||e.cat,e.amount])));
+  const sum=[["Month","Collected","Expenses","Net"],...D.months.map((M,m)=>[MON.enF[m],M.collected,M.expenses,M.net]),["Total",D.totals.collected,D.totals.expenses,D.totals.collected-D.totals.expenses],
+    [],["Opening balance",D.opening],["Bank balance",D.balance],["Monthly maintenance",D.rate],["As of",D.updated]];
+  return [["Collection "+D.year,coll],["Expenses "+D.year,exp],["Summary "+D.year,sum]]}
+function excelDownload(){const a=document.createElement("a");a.href=URL.createObjectURL(xlsxBlob(excelSheets(S.data)));a.download="society-accounts-"+S.data.year+".xlsx";
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),20000)}
 
 /* ---------------------------------------------------------------- payment notifications */
 /* The last payments this phone has seen are kept where the service worker can read them too.
