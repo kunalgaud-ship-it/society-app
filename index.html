@@ -374,6 +374,8 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   hoTitle:"समितीचे काम दुसऱ्याकडे द्या",hoS:"समितीचा फ्लॅट व PIN बदला",hoFlat:"समितीचा फ्लॅट",hoPin:"नवीन PIN (४ ते ८ अंक; रिकामे = तोच ठेवा)",hoOld:"सध्याचा PIN",
   hoBadPin:"PIN ४ ते ८ अंकांचा हवा.",hoWarn:"फ्लॅट बदलल्यावर या मोबाईलवरून नोंदी बंद होतील. नवीन सदस्याने त्याच्या फ्लॅटची लिंक उघडून स्वतःचे टोकन व नवीन PIN टाकावा.",
   hoSure:"समितीचा फ्लॅट बदलल्यावर हा मोबाईल सामान्य सदस्याचा होईल. नक्की?",
+  helpTitle:"मदतनीस सदस्य",helpS:"अहवाल व स्मरणपत्रे पाठवू शकणारे फ्लॅट",
+  helpHint:"निवडलेल्या फ्लॅटच्या मोबाईलवर अहवाल, पेंडिंग यादी, खर्च व स्मरणपत्रे WhatsApp वर पाठवण्याची बटणे दिसतील. नोंदी फक्त समितीच करू शकते.",
   conName:"नाव",conRole:"काम",conPhone:"मोबाईल नंबर",conAdd:"संपर्क जोडा",
   payGot:"भरणा जमा झाला ✅",payGotB:"{m} महिन्याचे {a} जमा झाले. धन्यवाद!"},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
@@ -454,6 +456,8 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   hoTitle:"Hand over the committee work",hoS:"Change the committee flat and PIN",hoFlat:"Committee flat",hoPin:"New PIN (4 to 8 digits; empty = keep it)",hoOld:"Current PIN",
   hoBadPin:"The PIN must be 4 to 8 digits.",hoWarn:"After the flat is changed, entries from this phone stop. The new member opens the link of that flat and enters their own token and the new PIN.",
   hoSure:"After the committee flat is changed this phone becomes an ordinary member's phone. Are you sure?",
+  helpTitle:"Helper members",helpS:"Flats that may send reports and reminders",
+  helpHint:"The chosen flats get the buttons to send the report, pending list, expenses and reminders on WhatsApp. Only the committee can make entries.",
   conName:"Name",conRole:"Work",conPhone:"Mobile number",conAdd:"Add contact",
   payGot:"Payment received ✅",payGotB:"{a} received for {m}. Thank you!"}
 };
@@ -624,7 +628,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v17 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v18 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -765,7 +769,7 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
       <div class="rw"><span class="ct" style="background:var(--brandSoft);color:var(--brand);font-weight:800">Σ</span><span class="tx"><b>${t("total")} · ${monF(sel)}</b></span><span class="am num">${money(mo.expenses)}</span></div></div>`
       :`<div class="empty">${tile("receipt","c7")}${t("noExp")}</div>`}
     ${canEdit()?`<div style="height:12px"></div><button class="btn primary" onclick="expSheet()">${ic("pen")}${t("admExp")}</button>`:""}
-    ${isAdmin()?`<div style="height:10px"></div><button class="btn wa" onclick="wa(expenseText(${sel}),'')">${ic("chat")}${t("expSend")}</button>`:""}</div>
+    ${canShare()?`<div style="height:10px"></div><button class="btn wa" onclick="wa(expenseText(${sel}),'')">${ic("chat")}${t("expSend")}</button>`:""}</div>
   <div class="card"><h3>${tile("pie","c6","sm")}${t("cats")}</h3>
     <div class="dn">${donut(cats.map(([k,v])=>({v,color:meta(k).color||"#6366f1"})),ctot)}<div class="mid"><span>${t("ytdOut")}</span><b class="num">${money(T2.expenses)}</b></div></div>
     ${cats.map(([k,v])=>{const c=meta(k);
@@ -783,7 +787,7 @@ function memView(){const D=S.data,m=S.memMonth,c=monthCounts(m),mine=String(S.fl
   return `<div class="card"><h3>${tile("cal","","sm")}${monF(m)} ${n(D.year)}</h3>${monthPills(m,"setMemMonth")}
     <div class="chips" style="margin-top:10px"><span class="chip good">${ic("check")}${t("paid")} ${n(c.paid)}</span>${c.partial?`<span class="chip warn">${t("partial")} ${n(c.partial)}</span>`:""}${now?`<span class="chip bad">${t("pending")} ${n(c.due)}</span>`:""}</div>
     <div class="prog"><i style="width:${Math.round(c.paid/D.flats.length*100)}%"></i></div>
-    ${isAdmin()?`<div style="height:14px"></div><button class="btn wa" onclick="sendPending(${m})">${ic("chat")}${t("pendSend")}</button>`:""}</div>
+    ${canShare()?`<div style="height:14px"></div><button class="btn wa" onclick="sendPending(${m})">${ic("chat")}${t("pendSend")}</button>`:""}</div>
   <div class="card"><div class="rows">${list.map(x=>`<button class="rw${String(x.f.no)===mine?" me":""}" onclick="${canEdit()?"payEntry":"flatSheet"}(${x.i})">${avatar(x.f,x.i)}
     <span class="tx"><b>${esc(x.f.name)}${String(x.f.no)===mine?` <span class="chip info">${t("you")}</span>`:""}</b><small>${t("flat")} ${n(x.f.no)}${monthDue(x.f,m)>0?" · "+t("due")+" "+money(monthDue(x.f,m)):""}</small></span>
     <span class="am">${chip(x)}</span></button>`).join("")}</div></div>`}
@@ -804,7 +808,10 @@ function pendingText(m){const D=S.data,mr=S.lang==="mr",d=new Date(),bar="━━
   if(left)L.push("",mr?"🙏 ज्यांचे बाकी आहे त्यांनी कृपया लवकरात लवकर भरणा करावा ही विनंती.":"🙏 Members with pending amount are requested to pay at the earliest.");
   L.push("",bar,`🏢 *${bname()}${mr?" समिती":" Committee"}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
   return L.join("\n")}
-function sendPending(m){if(isAdmin())wa(pendingText(m),"")}
+/* The WhatsApp messages (reports, pending list, reminders) can also be sent by helper flats the
+   committee has named; they only read the data, so they need no token. */
+function canShare(){return isAdmin()||(S.data.helpers||[]).map(String).includes(String(S.flat))}
+function sendPending(m){if(canShare())wa(pendingText(m),"")}
 function flatSheet(i){const D=S.data,f=D.flats[i],cm=curMonth(),owe=monthDue(f,cm);
   sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)} · ${t("rate")} ${money(D.rate)}</p></div></div>
     <div class="kp" style="margin:16px 0 14px"><div class="k"><span>${t("totalPaid")}</span><b class="num">${money(f.total)}</b></div>
@@ -828,6 +835,7 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
     ${item("call","c4",t("contacts"),t("contactsS"),"contactsSheet()")}
     ${item("chat","c4",t("contact"),t("contactS"),"contactCommittee()")}</div></div>
   <div class="card"><div class="rows">
+    ${canShare()&&!isAdmin()?item("chat","c4",t("repTitle"),t("repS"),"reportsSheet()"):""}
     ${isAdmin()?item("pen","",t("admin"),canEdit()?(S.data.cloud?t("cloudOn"):t("admOnS",{n:n(S.waiting.length)})):t("notifOff"),"adminSheet()"):""}
     ${isAdmin()?item("home","c5",t("changeFlat"),esc(f.name)+" · "+t("flat")+" "+n(f.no),"changeFlat()")
       :item("home","c5",esc(f.name)+" · "+t("flat")+" "+n(f.no),t("wrongFlat"),"wrongFlat()")}
@@ -1114,6 +1122,7 @@ function applyOne(D,o){const find=()=>{for(const M of D.months){const i=M.entrie
   else if(o.type==="contact_add")D.contacts.push({id:o.id,name:o.name,role:o.role||"",phone:o.phone});
   else if(o.type==="contact_delete")D.contacts=D.contacts.filter(x=>x.id!==o.ref);
   else if(o.type==="flat_name"){const f=D.flats.find(x=>String(x.no)===String(o.flat));if(f)f.name=o.name}
+  else if(o.type==="helpers")D.helpers=o.flats.map(String);
   else if(o.type==="committee"){D.admin_flat=String(o.admin_flat);if(o.lock)D.admin_lock=o.lock}
   else if(o.type==="settings"){D.rate=o.rate;D.opening=o.opening;D.due_day=o.due_day;Object.assign(D.contact,{upi:o.upi,payee:o.payee,phone:o.phone,pay_url:o.pay_url})}
   else if(o.type==="new_year"){recompute(D);D.opening=D.balance;D.year+=1;D.flats.forEach(f=>f.paid=f.paid.map(()=>0));D.months.forEach(M=>M.entries=[])}}
@@ -1162,7 +1171,7 @@ function adminSheet(){if(!isAdmin())return;
   const D=S.data;
   sheet(`${sheetHead("pen","",t("admin"),D.cloud?t("cloudOnS"):"")}<div class="rows" style="margin-top:8px">
       ${item("chat","c4",t("repTitle"),t("repS"),"reportsSheet()")}
-      ${D.cloud?item("wallet","",t("setTitle"),t("setS"),"settingsSheet()")+item("user","c5",t("hoTitle"),t("hoS"),"handoverSheet()"):""}
+      ${D.cloud?item("wallet","",t("setTitle"),t("setS"),"settingsSheet()")+item("users","c6",t("helpTitle"),t("helpS"),"helpersSheet()")+item("user","c5",t("hoTitle"),t("hoS"),"handoverSheet()"):""}
       ${item("down","c5",t("xlTitle"),t("xlS"),"excelDownload()")}</div>
     ${D.cloud?"":`<h3 style="margin:18px 0 2px;font-size:15px">${t("admWait")}</h3><p class="small muted">${t("admWaitS")}</p>
       ${S.waiting.length?`<div class="rows">${S.waiting.map(o=>`<div class="rw"><span class="tx"><b style="white-space:normal">${esc(opLabel(o))}</b><small>${fmtDate(o.date)}</small></span><button class="chip bad" onclick="undoOp(${o.id})">${ic("x")}${t("admDel")}</button></div>`).join("")}</div>`
@@ -1259,6 +1268,10 @@ function settingsSheet(){if(!cloud())return;const D=S.data,c=D.contact,num='type
 function saveSettings(){const v=id=>$(id).value.trim(),rate=+v("stRate"),opening=+v("stOpen"),due=Math.round(+v("stDue")),upi=v("stUpi"),ph=v("stPhone"),pay=v("stPay");
   if(!(rate>0)||v("stOpen")===""||!isFinite(opening)||!(due>=0&&due<=28)||(upi&&!/^[\w.\-]{2,}@[A-Za-z][\w.\-]+$/.test(upi))||(ph&&!phone12(ph))||(pay&&!/^https:\/\/\S+$/.test(pay)))return toast(t("setBad"));
   saveOp({type:"settings",rate,opening,due_day:due,upi,payee:v("stPayee")||S.data.building,phone:phone12(ph),pay_url:pay})}
+function helpersSheet(){if(!cloud())return;const D=S.data,on=(D.helpers||[]).map(String);
+  sheet(`${sheetHead("users","c6",t("helpTitle"),t("helpHint"))}<div class="rows" style="margin-top:8px">
+    ${D.flats.map((f,i)=>String(f.no)===adminFlat()?"":`<label class="rw" style="display:flex;margin:0;cursor:pointer;color:var(--text)">${avatar(f,i)}<span class="tx"><b>${esc(f.name)}</b><small>${t("flat")} ${n(f.no)}</small></span><input type="checkbox" class="hlp" value="${esc(f.no)}" style="width:22px;height:22px"${on.includes(String(f.no))?" checked":""}></label>`).join("")}</div>
+    <div style="height:16px"></div><button class="btn primary" onclick="saveOp({type:'helpers',flats:[...document.querySelectorAll('.hlp:checked')].map(x=>x.value)})">${ic("check")}${t("admSave")}</button>`)}
 /* Handing the committee work to another member: the committee flat and its PIN. The data keeps
    only a slow hash of the PIN (same as the PC app made). Once the flat is changed this phone is
    an ordinary member's phone; the new committee member opens the personal link of the new flat. */
