@@ -356,6 +356,11 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   nagTitle:"स्मरणपत्र पाठवायचे आहे",nudge:"{m}: {n} फ्लॅटचे पैसे बाकी आहेत.",nudgeLast:"(शेवटची यादी {n} दिवसांपूर्वी पाठवली)",nudgeGo:"यादी पाठवा",
   multi:"अनेक भरणा एकदम नोंदवा",multiHint:"ज्यांनी {a} दिले त्यांना निवडा",multiNone:"या महिन्यात सर्वांनी भरले आहे.",
   logTitle:"नोंदींचा इतिहास",logS:"कोणती नोंद कधी झाली",logNone:"अद्याप नोंदी नाहीत.",
+  payMode:"भरण्याचा प्रकार",modeupi:"UPI",modecash:"रोख",modebank:"बँक / चेक",payDate:"भरल्याची तारीख",
+  stmt:"वर्षाचा हिशोब WhatsApp वर पाठवा",stmtHead:"{y} मेंटेनन्स हिशोब",quick:"नेहमीचे खर्च",
+  verTitle:"मागील स्थिती परत आणा",verS:"चुकून बदल झाला तर",verHint:"प्रत्येक जतन येथे दिसते. जुनी वेळ निवडल्यास त्यानंतरच्या नोंदी रद्द होतात.",
+  verNow:"सध्याची",verGo:"परत आणा",verSure:"या वेळेनंतरच्या सर्व नोंदी जातील. नक्की?",verOld:"ही स्थिती PC च्या काळातील आहे; परत आणता येत नाही.",
+  xlNudge:"महिन्यातून एकदा Excel डाउनलोड करून ठेवा.",
   pendSend:"पेंडिंग यादी WhatsApp वर पाठवा",expSend:"मासिक खर्च WhatsApp वर पाठवा",
   admin:"समिती: मोबाईलवरून नोंदी",admOnS:"चालू · {n} नोंदी PC ची वाट पाहत आहेत",
   admIntro:"या मोबाईलवरून भरणा, खर्च, सूचना व तक्रारी नोंदवण्यासाठी GitHub टोकन एकदा टाका. टोकन फक्त या मोबाईलवर राहते.",
@@ -442,6 +447,11 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   nagTitle:"Time to send the reminder",nudge:"{m}: {n} flats have not paid.",nudgeLast:"(list last sent {n} days ago)",nudgeGo:"Send list",
   multi:"Enter several payments at once",multiHint:"tick everyone who paid {a}",multiNone:"Everyone has paid this month.",
   logTitle:"Activity log",logS:"Which entry was made when",logNone:"No entries yet.",
+  payMode:"Paid by",modeupi:"UPI",modecash:"Cash",modebank:"Bank / cheque",payDate:"Paid on",
+  stmt:"Send the year's statement on WhatsApp",stmtHead:"{y} maintenance statement",quick:"Usual expenses",
+  verTitle:"Bring back an earlier state",verS:"If something was changed by mistake",verHint:"Every save is listed here. Choosing an older time cancels the entries made after it.",
+  verNow:"Current",verGo:"Restore",verSure:"All entries made after this time will be lost. Are you sure?",verOld:"This state is from the PC days and cannot be restored.",
+  xlNudge:"Download the Excel file once a month and keep it.",
   pendSend:"Send pending list on WhatsApp",expSend:"Send monthly expenses on WhatsApp",
   admin:"Committee: entries from the phone",admOnS:"On · {n} entries waiting for the PC",
   admIntro:"Paste the GitHub token once to enter payments, expenses, notices and complaints from this phone. The token stays on this phone only.",
@@ -636,7 +646,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v19 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v20 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -825,16 +835,20 @@ function sendPending(m){if(!canShare())return;LS.set("pendSent",today());wa(pend
 /* how many flats have not paid this month in full, once the due day has come (0 before it) */
 function lateCount(){const D=S.data,cm=curMonth();
   return D.year!==NOW.getFullYear()||(D.due_day&&NOW.getDate()<D.due_day)?0:D.flats.filter(f=>f.paid[cm]<D.rate).length}
+/* with the phone in charge, the monthly Excel download is the committee's own copy of the accounts */
+function backupNudge(){const at=LS.get("xlAt","");if(!cloud()||(at&&(new Date(today())-new Date(at))/864e5<30))return"";
+  return `<div class="banner info">${tile("down","c5")}<span class="msg">${t("xlNudge")}</span><button class="go" onclick="excelDownload();render()">${t("xlTitle")}</button></div>`}
 /* the committee and its helpers are reminded on the home screen to send the pending list */
 function nudge(){const left=canShare()?lateCount():0,last=LS.get("pendSent",""),days=last?Math.round((new Date(today())-new Date(last))/864e5):null;
-  if(!left||(days!==null&&days<3))return"";
-  return `<div class="banner warn">${tile("bell","c3")}<span class="msg">${t("nudge",{m:monF(curMonth()),n:n(left)})}${days!==null?" "+t("nudgeLast",{n:n(days)}):""}</span><button class="go" onclick="sendPending(${curMonth()})">${t("nudgeGo")}</button></div>`}
+  if(!left||(days!==null&&days<3))return backupNudge();
+  return backupNudge()+`<div class="banner warn">${tile("bell","c3")}<span class="msg">${t("nudge",{m:monF(curMonth()),n:n(left)})}${days!==null?" "+t("nudgeLast",{n:n(days)}):""}</span><button class="go" onclick="sendPending(${curMonth()})">${t("nudgeGo")}</button></div>`}
 function flatSheet(i){const D=S.data,f=D.flats[i],cm=curMonth(),owe=monthDue(f,cm);
   sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)} · ${t("rate")} ${money(D.rate)}</p></div></div>
     <div class="kp" style="margin:16px 0 14px"><div class="k"><span>${t("totalPaid")}</span><b class="num">${money(f.total)}</b></div>
       <div class="k ${owe>0?"bad":"good"}"><span>${t("thisDue",{m:monF(cm)})}</span><b class="num">${money(owe)}</b></div></div>
     ${yearGrid(f)}
-    ${String(f.no)===String(S.flat)&&owe>0?`<div style="height:6px"></div><button class="btn primary" onclick="paySheet()">${ic("wallet")}${t("payNow")}</button>`:""}`)}
+    ${String(f.no)===String(S.flat)&&owe>0?`<div style="height:6px"></div><button class="btn primary" onclick="paySheet()">${ic("wallet")}${t("payNow")}</button>`:""}
+    ${canShare()?`<div style="height:10px"></div><button class="btn wa" onclick="wa(statementText(S.data.flats[${i}]),'')">${ic("chat")}${t("stmt")}</button>`:""}`)}
 
 /* ---------------------------------------------------------------- notices */
 function notView(){const N=S.data.notices;
@@ -1044,12 +1058,12 @@ function receiptSheet(m){const f=me(),v=f.paid[m];if(!(v>0))return;
   sheet(`<div class="rc"><img src="icon-192.png" alt=""><b>${esc(bname())}</b><span>${t("receipt")}</span>
       <div class="amt num">${money(v)}</div><span class="chip good">${ic("check")}${t("paid")}</span>
       <dl><dt>${t("rcptNo")}</dt><dd>${receiptNo(f,m)}</dd><dt>${t("member")}</dt><dd>${esc(f.name)}</dd><dt>${t("flat")}</dt><dd>${n(f.no)}</dd>
-        <dt>${t("month")}</dt><dd>${monF(m)} ${n(S.data.year)}</dd><dt>${t("rcptFor")}</dt><dd>${money(v)}</dd></dl>
+        <dt>${t("month")}</dt><dd>${monF(m)} ${n(S.data.year)}</dd><dt>${t("rcptFor")}</dt><dd>${money(v)}</dd>${payInfo(f,m)?`<dt>${t("payDate")}</dt><dd>${esc(payInfo(f,m))}</dd>`:""}</dl>
       <p>${t("rcptNote")}</p></div>
     <button class="btn wa" onclick="shareReceipt(${m})">${ic("share")}${t("rcptShare")}</button>
     <div style="height:10px"></div><button class="btn" onclick="receiptsSheet()">${t("receipts")}</button>`)}
 function receiptText(m,f){f=f||me();
-  return `🧾 *${t("receipt")}*\n🏢 *${bname()}*\n━━━━━━━━━━━━━━━━\n${t("rcptNo")}: ${receiptNo(f,m)}\n👤 ${t("member")}: ${f.name} (${t("flat")} ${n(f.no)})\n📅 ${t("month")}: ${monF(m)} ${n(S.data.year)}\n💰 ${t("amount")}: ${money(f.paid[m])}\n━━━━━━━━━━━━━━━━\n${t("rcptNote")}`}
+  return `🧾 *${t("receipt")}*\n🏢 *${bname()}*\n━━━━━━━━━━━━━━━━\n${t("rcptNo")}: ${receiptNo(f,m)}\n👤 ${t("member")}: ${f.name} (${t("flat")} ${n(f.no)})\n📅 ${t("month")}: ${monF(m)} ${n(S.data.year)}\n💰 ${t("amount")}: ${money(f.paid[m])}${payInfo(f,m)?`\n🗓 ${t("payDate")}: ${payInfo(f,m)}`:""}\n━━━━━━━━━━━━━━━━\n${t("rcptNote")}`}
 function shareReceipt(m){const text=receiptText(m);if(navigator.share)navigator.share({text}).catch(()=>{});else wa(text,"")}
 
 /* ---------------------------------------------------------------- committee entries from the phone */
@@ -1115,7 +1129,8 @@ function insights(D,lang){const mr=lang==="mr",mi=D.year===NOW.getFullYear()?NOW
 function upgrade(D){D.complaints=D.complaints||[];D.contacts=D.contacts||[];D.applied=D.applied||[];
   if(D.opening===undefined)D.opening=D.balance-D.totals.collected+D.totals.expenses;
   D.months.forEach((M,m)=>M.entries.forEach((e,i)=>{if(e.desc===undefined)e.desc=plain(e.en||"");if(!e.id)e.id=(m+1)*1000+i}));
-  D.contacts.forEach((c,i)=>{if(!c.id)c.id=i+1})}
+  D.contacts.forEach((c,i)=>{if(!c.id)c.id=i+1});
+  D.flats.forEach(f=>{if(!f.info)f.info=f.paid.map(()=>null)})}      // per month: when and how it was paid, once entered on the phone
 function recompute(D){const meta=D.category_meta||{};D.category_year={};let tc=0,te=0;
   D.flats.forEach(f=>{f.total=f.paid.reduce((s,v)=>s+v,0)});
   D.months.forEach((M,m)=>{M.collected=D.flats.reduce((s,f)=>s+f.paid[m],0);M.expenses=0;M.categories={};
@@ -1127,7 +1142,7 @@ function recompute(D){const meta=D.category_meta||{};D.category_year={};let tc=0
   D.insights={mr:insights(D,"mr"),en:insights(D,"en")}}
 /* one entry of the committee, made on the entered values only */
 function applyOne(D,o){const find=()=>{for(const M of D.months){const i=M.entries.findIndex(e=>e.id===o.ref);if(i>=0)return [M,i]}return null};
-  if(o.type==="payment"){const f=D.flats.find(x=>String(x.no)===String(o.flat));if(f&&o.month>=0&&o.month<12)f.paid[o.month]=+o.amount||0}
+  if(o.type==="payment"){const f=D.flats.find(x=>String(x.no)===String(o.flat));if(f&&o.month>=0&&o.month<12){f.paid[o.month]=+o.amount||0;if(f.info)f.info[o.month]=+o.amount?{d:o.date,mode:o.mode||""}:null}}
   else if(o.type==="expense_add"){const M=D.months[o.month];if(M)M.entries.push({id:o.id,date:o.date,amount:+o.amount||0,desc:o.desc,mrx:o.mr||""})}
   else if(o.type==="expense_update"){const hit=find();if(hit){const e=hit[0].entries[hit[1]];if(e.desc!==o.desc)e.mrx="";e.desc=o.desc;e.date=o.date;e.amount=+o.amount||0}}
   else if(o.type==="expense_delete"){const hit=find();if(hit)hit[0].entries.splice(hit[1],1)}
@@ -1142,7 +1157,7 @@ function applyOne(D,o){const find=()=>{for(const M of D.months){const i=M.entrie
   else if(o.type==="helpers")D.helpers=o.flats.map(String);
   else if(o.type==="committee"){D.admin_flat=String(o.admin_flat);if(o.lock)D.admin_lock=o.lock}
   else if(o.type==="settings"){D.rate=o.rate;D.opening=o.opening;D.due_day=o.due_day;Object.assign(D.contact,{upi:o.upi,payee:o.payee,phone:o.phone,pay_url:o.pay_url})}
-  else if(o.type==="new_year"){recompute(D);D.opening=D.balance;D.year+=1;D.flats.forEach(f=>f.paid=f.paid.map(()=>0));D.months.forEach(M=>M.entries=[])}}
+  else if(o.type==="new_year"){recompute(D);D.opening=D.balance;D.year+=1;D.flats.forEach(f=>{f.paid=f.paid.map(()=>0);f.info=f.paid.map(()=>null)});D.months.forEach(M=>M.entries=[])}}
 /* entries still waiting for the PC, laid over the published data (not needed once the phone is in charge) */
 function applyOps(D,ops){const done=new Set(D.applied||[]);S.waiting=ops.filter(o=>!done.has(o.id));
   if(!S.waiting.length)return;
@@ -1163,7 +1178,7 @@ async function changeData(fn){
     catch(e){if(i>=2||e.message!=="409")throw e}}}
 async function run(job,after){if(!canEdit()||S.busy)return;S.busy=true;
   try{await job();closeSheet();await openData();toast(t(S.data.cloud?"admSavedC":"admSaved"));if(after)after()}
-  catch(e){toast(t(e.message==="401"||e.message==="403"?"admTokBad":"admFail"))}
+  catch(e){toast(t(e.message==="401"||e.message==="403"?"admTokBad":e.message==="old"?"verOld":"admFail"))}
   finally{S.busy=false}}
 /* several entries go up in one write; when the phone is in charge each is also noted in the activity log */
 function saveOps(list,after){const base=Date.now();list.forEach((o,i)=>{o.id=base+i;o.date=o.date||today()});
@@ -1193,7 +1208,7 @@ function adminSheet(){if(!isAdmin())return;
       ${item("chat","c4",t("repTitle"),t("repS"),"reportsSheet()")}
       ${D.cloud?item("wallet","",t("setTitle"),t("setS"),"settingsSheet()")+item("users","c6",t("helpTitle"),t("helpS"),"helpersSheet()")+item("user","c5",t("hoTitle"),t("hoS"),"handoverSheet()"):""}
       ${item("down","c5",t("xlTitle"),t("xlS"),"excelDownload()")}
-      ${D.cloud?item("clock","c7",t("logTitle"),t("logS"),"logSheet()"):""}</div>
+      ${D.cloud?item("clock","c7",t("logTitle"),t("logS"),"logSheet()")+item("refresh","c2",t("verTitle"),t("verS"),"versionsSheet()"):""}</div>
     ${D.cloud?"":`<h3 style="margin:18px 0 2px;font-size:15px">${t("admWait")}</h3><p class="small muted">${t("admWaitS")}</p>
       ${S.waiting.length?`<div class="rows">${S.waiting.map(o=>`<div class="rw"><span class="tx"><b style="white-space:normal">${esc(opLabel(o))}</b><small>${fmtDate(o.date)}</small></span><button class="chip bad" onclick="undoOp(${o.id})">${ic("x")}${t("admDel")}</button></div>`).join("")}</div>`
         :`<div class="empty">${tile("check","c5")}${t("admNone")}</div>`}
@@ -1212,14 +1227,27 @@ function opLabel(o){const f=S.data.flats.find(x=>String(x.no)===String(o.flat));
 function logSheet(){const L=S.data.log||[];
   sheet(`${sheetHead("clock","c7",t("logTitle"),t("logS"))}<div style="height:8px"></div>
     ${L.length?`<div class="rows">${L.map(x=>`<div class="rw"><span class="tx"><b style="white-space:normal">${esc(x.s)}</b><small>${fmtStamp(x.t)}</small></span></div>`).join("")}</div>`:`<div class="empty">${tile("clock","c7")}${t("logNone")}</div>`}`)}
+/* Every save is a commit of data.json in the repository, so an earlier state can be brought
+   back after a mistake. Only states written by the phone itself can be restored. */
+async function ghApi(path){const r=await fetch("https://api.github.com/repos/"+LS.get("ghRepo","")+"/"+path,{cache:"no-store",headers:{Authorization:"Bearer "+LS.get("ghTok",""),Accept:"application/vnd.github+json"}});
+  if(!r.ok)throw new Error(String(r.status));return r.json()}
+function localStamp(iso){const d=new Date(iso),p=x=>String(x).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours())+":"+p(d.getMinutes())}
+async function versionsSheet(){if(!cloud())return;let list;
+  try{list=await ghApi("commits?path=data.json&per_page=15&t="+Date.now())}catch(e){return toast(t("admFail"))}
+  sheet(`${sheetHead("refresh","c2",t("verTitle"),t("verHint"))}<div class="rows" style="margin-top:8px">${list.map((c,i)=>`<div class="rw"><span class="tx"><b>${fmtStamp(localStamp(c.commit.committer.date))}</b></span>
+    ${i?`<button class="chip warn" style="padding:7px 12px" onclick="restoreVersion('${esc(c.sha)}')">${t("verGo")}</button>`:`<span class="chip good">${t("verNow")}</span>`}</div>`).join("")}</div>`)}
+function restoreVersion(sha){if(!/^[0-9a-f]{40}$/.test(sha)||!confirm(t("verSure")))return;
+  return run(async()=>{const old=await ghApi("contents/data.json?ref="+sha),enc=unb(old),D=await decrypt(enc,S.pass);
+    if(!D.cloud)throw new Error("old");
+    const cur=await gh("data.json");await gh("data.json",{message:"Earlier version restored",content:b64json(enc),sha:cur.sha});S.enc=enc;LS.set("enc",enc)})}
 /* the usual case after a collection round: tick everyone who paid the monthly amount, one save */
 function multiSheet(){const D=S.data,m=S.memMonth,left=D.flats.map((f,i)=>({f,i})).filter(x=>x.f.paid[m]<D.rate);
   sheet(`${sheetHead("users","",t("multi"),monF(m)+" "+n(D.year)+" · "+t("multiHint",{a:money(D.rate)}))}
-    ${left.length?`<div class="rows" style="margin-top:8px">${left.map(x=>`<label class="rw" style="display:flex;margin:0;cursor:pointer;color:var(--text)">${avatar(x.f,x.i)}<span class="tx"><b>${esc(x.f.name)}</b><small>${t("flat")} ${n(x.f.no)}${x.f.paid[m]>0?" · "+money(x.f.paid[m]):""}</small></span><input type="checkbox" class="mlt" value="${esc(x.f.no)}" style="width:22px;height:22px"></label>`).join("")}</div>
+    ${left.length?`<label>${t("payMode")}${modeSelect("mlMode")}</label><div class="rows" style="margin-top:8px">${left.map(x=>`<label class="rw" style="display:flex;margin:0;cursor:pointer;color:var(--text)">${avatar(x.f,x.i)}<span class="tx"><b>${esc(x.f.name)}</b><small>${t("flat")} ${n(x.f.no)}${x.f.paid[m]>0?" · "+money(x.f.paid[m]):""}</small></span><input type="checkbox" class="mlt" value="${esc(x.f.no)}" style="width:22px;height:22px"></label>`).join("")}</div>
       <div style="height:16px"></div><button class="btn primary" onclick="saveMulti()">${ic("check")}${t("admSave")}</button>`
       :`<div class="empty">${tile("check","c5")}${t("multiNone")}</div>`}`)}
 function saveMulti(){const flats=[...document.querySelectorAll(".mlt:checked")].map(x=>x.value);if(!flats.length)return toast(t("needAmt"));
-  saveOps(flats.map(no=>({type:"payment",flat:no,month:S.memMonth,amount:S.data.rate})))}
+  saveOps(flats.map(no=>({type:"payment",flat:no,month:S.memMonth,amount:S.data.rate,mode:$("mlMode").value})))}
 async function saveTok(ev){ev.preventDefault();const tok=$("tokIn").value.trim();if(!tok)return;
   if(S.data.admin_lock&&!(await pinOk($("tokPin").value.replace(/\s/g,""))))return toast(t("pinWrong"));
   LS.set("ghTok",tok);LS.set("ghRepo",S.data.repo);
@@ -1230,18 +1258,34 @@ function tokOff(){if(!confirm(t("admSure")))return;LS.del("ghTok");closeSheet();
 function payEntry(i){const D=S.data,f=D.flats[i],m=S.memMonth,v=f.paid[m];
   sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)} · ${monF(m)} ${n(D.year)}</p></div></div>
     <label>${t("amount")} (₹)<input id="peAmt" type="number" inputmode="numeric" min="0" step="1" value="${v>0?v:D.rate}"></label>
-    <div class="chips" style="margin:12px 0 16px">${[D.rate,D.rate*2,D.rate*3,0].map(a=>`<button class="chip ${a?"info":"bad"}" style="padding:8px 13px;font-size:13px" onclick="$('peAmt').value=${a}">${a?money(a):t("admClear")}</button>`).join("")}</div>
-    <button class="btn primary" onclick="savePay(${i})">${ic("check")}${t("admSave")}</button>
+    <div class="chips" style="margin:12px 0 2px">${[D.rate,D.rate*2,D.rate*3,0].map(a=>`<button class="chip ${a?"info":"bad"}" style="padding:8px 13px;font-size:13px" onclick="$('peAmt').value=${a}">${a?money(a):t("admClear")}</button>`).join("")}</div>
+    <label>${t("payMode")}${modeSelect("peMode",(f.info[m]||{}).mode)}</label>
+    <label>${t("payDate")}<input id="peDate" type="date" value="${esc((f.info[m]||{}).d||today())}"></label>
+    <div style="height:16px"></div><button class="btn primary" onclick="savePay(${i})">${ic("check")}${t("admSave")}</button>
     ${v>0?`<div style="height:10px"></div><button class="btn wa" onclick="wa(receiptText(${m},S.data.flats[${i}]),'')">${ic("receipt")}${t("admRcpt")}</button>`:""}
     <div style="height:10px"></div><button class="btn" onclick="flatSheet(${i})">${t("details")}</button>
     ${cloud()?`<div style="height:10px"></div><button class="btn" onclick="renameFlat(${i})">${ic("user")}${t("admName")}</button>`:""}`)}
 function renameFlat(i){const f=S.data.flats[i],name=(prompt(t("admName"),f.name)||"").trim().slice(0,60);
   if(name&&name!==f.name)saveOp({type:"flat_name",flat:f.no,name})}
+const PAY_MODES=["upi","cash","bank"];
+function modeSelect(id,cur){return `<select id="${id}">${PAY_MODES.map(k=>`<option value="${k}"${k===cur?" selected":""}>${t("mode"+k)}</option>`).join("")}</select>`}
 function savePay(i){const v=$("peAmt").value.trim(),a=Math.round(+v);if(v===""||!(a>=0))return toast(t("needAmt"));
-  saveOp({type:"payment",flat:S.data.flats[i].no,month:S.memMonth,amount:a})}
+  saveOp({type:"payment",flat:S.data.flats[i].no,month:S.memMonth,amount:a,mode:$("peMode").value,date:$("peDate").value||today()})}
+/* when and how a month was paid, for receipts ("" when it was entered before this was kept) */
+function payInfo(f,m){const x=(f.info||[])[m];return x?fmtDate(x.d)+(x.mode?" · "+t("mode"+x.mode):""):""}
+/* one member's year, for that member's chat */
+function statementText(f){const D=S.data,L=[`🏢 *${bname()}*`,`📄 *${t("stmtHead",{y:n(D.year)})}*`,`👤 ${f.name} (${t("flat")} ${n(f.no)})`,"━━━━━━━━━━━━━━━━"];
+  for(let m=0;m<dueTo();m++){const v=f.paid[m],inf=payInfo(f,m);L.push(`${mon(m)}: ${v>0?money(v)+(v>=D.rate?" ✅":" ⚠️"):"—"}${inf?"  ("+inf+")":""}`)}
+  f.paid.forEach((v,m)=>{if(m>=dueTo()&&v>0)L.push(`${mon(m)}: ${money(v)} ✅ (${t("advance")})`)});
+  L.push("━━━━━━━━━━━━━━━━",`💰 ${t("totalPaid")}: ${money(f.total)}`,`⏳ ${t("outstanding")}: ${money(owes(f))}`,"",`— ${bname()}`);
+  return L.join("\n")}
 
 function expSheet(){const D=S.data,m=S.accMonth,ym=D.year+"-"+String(m+1).padStart(2,"0");
+  /* the expenses that come back every month: the latest amount of each kind, one tap fills the form */
+  const seen={};D.months.forEach(M=>M.entries.forEach(e=>{if(e.cat!=="other"&&(!seen[e.cat]||e.date>=seen[e.cat].date))seen[e.cat]=e}));
+  const usual=Object.values(seen).sort((a,b)=>a.date<b.date?1:-1).slice(0,4);
   sheet(`${sheetHead("receipt","c3",t("admExp"),monF(m)+" "+n(D.year))}
+    ${usual.length?`<div class="small muted" style="margin:12px 0 6px;font-weight:700">${t("quick")}</div><div class="chips">${usual.map(e=>`<button class="chip info" style="padding:8px 13px;font-size:13px" onclick="$('exCat').value='${esc(e.cat)}';$('exAmt').value=${e.amount}">${esc(S.lang==="mr"?(D.category_meta[e.cat]||{}).mr:(D.category_meta[e.cat]||{}).en)} ${money(e.amount)}</button>`).join("")}</div>`:""}
     <label>${t("type")}<select id="exCat">${Object.entries(D.category_meta).map(([k,c])=>`<option value="${esc(k)}">${esc(S.lang==="mr"?c.mr:c.en)}</option>`).join("")}</select></label>
     <label>${t("admDesc")}<input id="exDesc" maxlength="80"></label>
     <label>${t("date")}<input id="exDate" type="date" value="${today().slice(0,7)===ym?today():ym+"-01"}"></label>
@@ -1407,8 +1451,10 @@ function excelSheets(D){const meta=D.category_meta||{};
   D.months.forEach((M,m)=>M.entries.forEach(e=>exp.push([MON.enF[m],e.date,e.desc,(meta[e.cat]||{}).en||e.cat,e.amount])));
   const sum=[["Month","Collected","Expenses","Net"],...D.months.map((M,m)=>[MON.enF[m],M.collected,M.expenses,M.net]),["Total",D.totals.collected,D.totals.expenses,D.totals.collected-D.totals.expenses],
     [],["Opening balance",D.opening],["Bank balance",D.balance],["Monthly maintenance",D.rate],["As of",D.updated]];
-  return [["Collection "+D.year,coll],["Expenses "+D.year,exp],["Summary "+D.year,sum]]}
-function excelDownload(){const a=document.createElement("a");a.href=URL.createObjectURL(xlsxBlob(excelSheets(S.data)));a.download="society-accounts-"+S.data.year+".xlsx";
+  const pay=[["Flat","Name","Month","Amount","Paid on","Paid by"]];
+  D.flats.forEach(f=>f.paid.forEach((v,m)=>{if(v>0){const x=(f.info||[])[m]||{};pay.push([f.no,f.name,MON.enF[m],v,x.d||"",x.mode||""])}}));
+  return [["Collection "+D.year,coll],["Payments "+D.year,pay],["Expenses "+D.year,exp],["Summary "+D.year,sum]]}
+function excelDownload(){LS.set("xlAt",today());const a=document.createElement("a");a.href=URL.createObjectURL(xlsxBlob(excelSheets(S.data)));a.download="society-accounts-"+S.data.year+".xlsx";
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),20000)}
 
 /* ---------------------------------------------------------------- payment notifications */
