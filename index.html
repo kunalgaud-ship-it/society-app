@@ -349,9 +349,13 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   pickLock:"हा फ्लॅट निवडल्यावर या मोबाईलवर फ्लॅट बदलण्याचा पर्याय बंद होईल. परत येण्यासाठी आपली स्वतःची लिंक उघडा.",pickView:"हा फ्लॅट पहा",
   pickYes:"होय, हा माझा फ्लॅट आहे",wrongFlat:"फ्लॅट चुकीचा आहे? समितीला कळवा",
   wrongMsg:"माझ्या ॲपमध्ये फ्लॅट चुकीचा निवडला गेला आहे. कृपया माझ्या फ्लॅटची लिंक पाठवा.",
-  notif:"भरणा जमा झाल्याची सूचना",notifOn:"चालू",notifOff:"बंद. चालू करण्यासाठी दाबा",
+  notif:"मोबाईलवर सूचना (भरणा, बाकी, नोटीस)",notifOn:"चालू",notifOff:"बंद. चालू करण्यासाठी दाबा",
   notifBlocked:"मोबाईलच्या सेटिंगमध्ये या ॲपसाठी Notifications चालू करा.",
-  notifReady:"सूचना चालू झाली. तुमचा भरणा नोंदवल्यावर मोबाईलवर सूचना येईल.",notifStop:"सूचना बंद केली",
+  notifReady:"सूचना चालू झाली: भरणा जमा झाल्यावर, रक्कम बाकी असल्यास आणि नवीन सूचना आल्यावर कळेल.",notifStop:"सूचना बंद केली",
+  noteNew:"📢 नवीन सूचना",dueTitle:"मेंटेनन्स बाकी आहे",dueBody:"{m} महिन्याचे {a} बाकी आहेत. कृपया भरणा करा. 🙏",
+  nagTitle:"स्मरणपत्र पाठवायचे आहे",nudge:"{m}: {n} फ्लॅटचे पैसे बाकी आहेत.",nudgeLast:"(शेवटची यादी {n} दिवसांपूर्वी पाठवली)",nudgeGo:"यादी पाठवा",
+  multi:"अनेक भरणा एकदम नोंदवा",multiHint:"ज्यांनी {a} दिले त्यांना निवडा",multiNone:"या महिन्यात सर्वांनी भरले आहे.",
+  logTitle:"नोंदींचा इतिहास",logS:"कोणती नोंद कधी झाली",logNone:"अद्याप नोंदी नाहीत.",
   pendSend:"पेंडिंग यादी WhatsApp वर पाठवा",expSend:"मासिक खर्च WhatsApp वर पाठवा",
   admin:"समिती: मोबाईलवरून नोंदी",admOnS:"चालू · {n} नोंदी PC ची वाट पाहत आहेत",
   admIntro:"या मोबाईलवरून भरणा, खर्च, सूचना व तक्रारी नोंदवण्यासाठी GitHub टोकन एकदा टाका. टोकन फक्त या मोबाईलवर राहते.",
@@ -431,9 +435,13 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   pickLock:"After choosing this flat, the change-flat option is locked on this phone. Open your own link to come back.",pickView:"Show this flat",
   pickYes:"Yes, this is my flat",wrongFlat:"Wrong flat? Tell the committee",
   wrongMsg:"The wrong flat was chosen in my app. Please send me the link for my flat.",
-  notif:"Payment notifications",notifOn:"On",notifOff:"Off. Tap to turn on",
+  notif:"Phone notifications (payment, dues, notices)",notifOn:"On",notifOff:"Off. Tap to turn on",
   notifBlocked:"Allow notifications for this app in the phone's settings.",
-  notifReady:"Notifications are on. You will be told when your payment is recorded.",notifStop:"Notifications turned off",
+  notifReady:"Notifications are on: when your payment is recorded, when an amount is due and when there is a new notice.",notifStop:"Notifications turned off",
+  noteNew:"📢 New notice",dueTitle:"Maintenance is due",dueBody:"{a} is pending for {m}. Please pay. 🙏",
+  nagTitle:"Time to send the reminder",nudge:"{m}: {n} flats have not paid.",nudgeLast:"(list last sent {n} days ago)",nudgeGo:"Send list",
+  multi:"Enter several payments at once",multiHint:"tick everyone who paid {a}",multiNone:"Everyone has paid this month.",
+  logTitle:"Activity log",logS:"Which entry was made when",logNone:"No entries yet.",
   pendSend:"Send pending list on WhatsApp",expSend:"Send monthly expenses on WhatsApp",
   admin:"Committee: entries from the phone",admOnS:"On · {n} entries waiting for the PC",
   admIntro:"Paste the GitHub token once to enter payments, expenses, notices and complaints from this phone. The token stays on this phone only.",
@@ -628,7 +636,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v18 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v19 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -731,6 +739,7 @@ function homeView(){const D=S.data,f=me(),cm=curMonth(),mo=D.months[cm],c=monthC
   const showInstall=!STANDALONE&&!LS.get("noInstall",false);
   const top=D.notices[0];
   return `${showInstall?`<div class="banner info">${tile("phone","c6")}<span class="msg">${t("instBanner")}</span><button class="go" onclick="installSheet()">${t("instNow")}</button><button class="x" onclick="LS.set('noInstall',true);render()" aria-label="close">${ic("x")}</button></div>`:""}
+  ${nudge()}
   <div class="hero"><div class="hrow"><div><div class="who">${t("hello")} 🙏</div><b class="nm">${esc(f.name)}</b><span class="tag">${t("flat")} ${n(f.no)}</span></div>${ring(done,due,t("months"))}</div>${st}
     <div class="acts">${owe>0?`<button class="main" onclick="paySheet()">${ic("wallet")}${t("payNow")}</button>`:""}<button onclick="flatSheet(${D.flats.indexOf(f)})">${ic("receipt")}${t("details")}</button></div></div>
   <div class="qa"><button onclick="paySheet()">${tile("wallet")}${t("qPay")}</button><button onclick="receiptsSheet()">${tile("receipt","c5")}${t("qRcpt")}</button>
@@ -787,7 +796,8 @@ function memView(){const D=S.data,m=S.memMonth,c=monthCounts(m),mine=String(S.fl
   return `<div class="card"><h3>${tile("cal","","sm")}${monF(m)} ${n(D.year)}</h3>${monthPills(m,"setMemMonth")}
     <div class="chips" style="margin-top:10px"><span class="chip good">${ic("check")}${t("paid")} ${n(c.paid)}</span>${c.partial?`<span class="chip warn">${t("partial")} ${n(c.partial)}</span>`:""}${now?`<span class="chip bad">${t("pending")} ${n(c.due)}</span>`:""}</div>
     <div class="prog"><i style="width:${Math.round(c.paid/D.flats.length*100)}%"></i></div>
-    ${canShare()?`<div style="height:14px"></div><button class="btn wa" onclick="sendPending(${m})">${ic("chat")}${t("pendSend")}</button>`:""}</div>
+    ${canEdit()?`<div style="height:14px"></div><button class="btn primary" onclick="multiSheet()">${ic("users")}${t("multi")}</button>`:""}
+    ${canShare()?`<div style="height:${canEdit()?10:14}px"></div><button class="btn wa" onclick="sendPending(${m})">${ic("chat")}${t("pendSend")}</button>`:""}</div>
   <div class="card"><div class="rows">${list.map(x=>`<button class="rw${String(x.f.no)===mine?" me":""}" onclick="${canEdit()?"payEntry":"flatSheet"}(${x.i})">${avatar(x.f,x.i)}
     <span class="tx"><b>${esc(x.f.name)}${String(x.f.no)===mine?` <span class="chip info">${t("you")}</span>`:""}</b><small>${t("flat")} ${n(x.f.no)}${monthDue(x.f,m)>0?" · "+t("due")+" "+money(monthDue(x.f,m)):""}</small></span>
     <span class="am">${chip(x)}</span></button>`).join("")}</div></div>`}
@@ -811,7 +821,14 @@ function pendingText(m){const D=S.data,mr=S.lang==="mr",d=new Date(),bar="━━
 /* The WhatsApp messages (reports, pending list, reminders) can also be sent by helper flats the
    committee has named; they only read the data, so they need no token. */
 function canShare(){return isAdmin()||(S.data.helpers||[]).map(String).includes(String(S.flat))}
-function sendPending(m){if(canShare())wa(pendingText(m),"")}
+function sendPending(m){if(!canShare())return;LS.set("pendSent",today());wa(pendingText(m),"");if(S.tab==="home")render()}
+/* how many flats have not paid this month in full, once the due day has come (0 before it) */
+function lateCount(){const D=S.data,cm=curMonth();
+  return D.year!==NOW.getFullYear()||(D.due_day&&NOW.getDate()<D.due_day)?0:D.flats.filter(f=>f.paid[cm]<D.rate).length}
+/* the committee and its helpers are reminded on the home screen to send the pending list */
+function nudge(){const left=canShare()?lateCount():0,last=LS.get("pendSent",""),days=last?Math.round((new Date(today())-new Date(last))/864e5):null;
+  if(!left||(days!==null&&days<3))return"";
+  return `<div class="banner warn">${tile("bell","c3")}<span class="msg">${t("nudge",{m:monF(curMonth()),n:n(left)})}${days!==null?" "+t("nudgeLast",{n:n(days)}):""}</span><button class="go" onclick="sendPending(${curMonth()})">${t("nudgeGo")}</button></div>`}
 function flatSheet(i){const D=S.data,f=D.flats[i],cm=curMonth(),owe=monthDue(f,cm);
   sheet(`<div class="sh">${avatar(f,i)}<div><h2>${esc(f.name)}</h2><p>${t("flat")} ${n(f.no)} · ${t("rate")} ${money(D.rate)}</p></div></div>
     <div class="kp" style="margin:16px 0 14px"><div class="k"><span>${t("totalPaid")}</span><b class="num">${money(f.total)}</b></div>
@@ -1148,8 +1165,11 @@ async function run(job,after){if(!canEdit()||S.busy)return;S.busy=true;
   try{await job();closeSheet();await openData();toast(t(S.data.cloud?"admSavedC":"admSaved"));if(after)after()}
   catch(e){toast(t(e.message==="401"||e.message==="403"?"admTokBad":"admFail"))}
   finally{S.busy=false}}
-function saveOp(op,after){op.id=Date.now();op.date=op.date||today();
-  return run(()=>S.data.cloud?changeData(D=>applyOne(D,op)):changeInbox(ops=>ops.concat(op)),after)}
+/* several entries go up in one write; when the phone is in charge each is also noted in the activity log */
+function saveOps(list,after){const base=Date.now();list.forEach((o,i)=>{o.id=base+i;o.date=o.date||today()});
+  return run(()=>S.data.cloud?changeData(D=>{const log=list.map(o=>({t:stamp(),s:opLabel(o)}));list.forEach(o=>applyOne(D,o));D.log=log.concat(D.log||[]).slice(0,80)})
+    :changeInbox(ops=>ops.concat(list)),after)}
+function saveOp(op,after){return saveOps([op],after)}
 function undoOp(id){if(confirm(t("admSure")))run(()=>changeInbox(ops=>ops.filter(o=>o.id!==id)),adminSheet)}
 /* From here on the phone keeps the accounts: cloud.json tells the PC app to leave data.json
    alone, the waiting entries go into the data, and the inbox is emptied. */
@@ -1172,7 +1192,8 @@ function adminSheet(){if(!isAdmin())return;
   sheet(`${sheetHead("pen","",t("admin"),D.cloud?t("cloudOnS"):"")}<div class="rows" style="margin-top:8px">
       ${item("chat","c4",t("repTitle"),t("repS"),"reportsSheet()")}
       ${D.cloud?item("wallet","",t("setTitle"),t("setS"),"settingsSheet()")+item("users","c6",t("helpTitle"),t("helpS"),"helpersSheet()")+item("user","c5",t("hoTitle"),t("hoS"),"handoverSheet()"):""}
-      ${item("down","c5",t("xlTitle"),t("xlS"),"excelDownload()")}</div>
+      ${item("down","c5",t("xlTitle"),t("xlS"),"excelDownload()")}
+      ${D.cloud?item("clock","c7",t("logTitle"),t("logS"),"logSheet()"):""}</div>
     ${D.cloud?"":`<h3 style="margin:18px 0 2px;font-size:15px">${t("admWait")}</h3><p class="small muted">${t("admWaitS")}</p>
       ${S.waiting.length?`<div class="rows">${S.waiting.map(o=>`<div class="rw"><span class="tx"><b style="white-space:normal">${esc(opLabel(o))}</b><small>${fmtDate(o.date)}</small></span><button class="chip bad" onclick="undoOp(${o.id})">${ic("x")}${t("admDel")}</button></div>`).join("")}</div>`
         :`<div class="empty">${tile("check","c5")}${t("admNone")}</div>`}
@@ -1183,7 +1204,22 @@ function opLabel(o){const f=S.data.flats.find(x=>String(x.no)===String(o.flat));
     :o.type==="expense_add"?`${t("expenses")}: ${S.lang==="mr"?o.mr:o.desc} · ${money(o.amount)}`
     :o.type==="notice_add"?`${t("not")}: ${o.title}`:o.type==="notice_delete"?`${t("not")}: ${t("admDel")}`
     :o.type==="complaint_add"?`${t("board")}: ${o.title}`:o.type==="complaint_delete"?`${t("board")}: ${t("admDel")}`
+    :o.type==="expense_update"?`${t("expenses")} ✎: ${o.desc} · ${money(o.amount)}`:o.type==="expense_delete"?`${t("expenses")}: ${t("admDel")}`
+    :o.type==="contact_add"?`${t("contacts")}: ${o.name}`:o.type==="contact_delete"?`${t("contacts")}: ${t("admDel")}`
+    :o.type==="flat_name"?`${t("admName")}: ${o.name}`:o.type==="settings"?t("setTitle"):o.type==="helpers"?t("helpTitle")
+    :o.type==="committee"?t("hoTitle"):o.type==="new_year"?t("newYear")
     :`${t("board")}: ${o.status?t("st"+o.status):o.note||""}`}
+function logSheet(){const L=S.data.log||[];
+  sheet(`${sheetHead("clock","c7",t("logTitle"),t("logS"))}<div style="height:8px"></div>
+    ${L.length?`<div class="rows">${L.map(x=>`<div class="rw"><span class="tx"><b style="white-space:normal">${esc(x.s)}</b><small>${fmtStamp(x.t)}</small></span></div>`).join("")}</div>`:`<div class="empty">${tile("clock","c7")}${t("logNone")}</div>`}`)}
+/* the usual case after a collection round: tick everyone who paid the monthly amount, one save */
+function multiSheet(){const D=S.data,m=S.memMonth,left=D.flats.map((f,i)=>({f,i})).filter(x=>x.f.paid[m]<D.rate);
+  sheet(`${sheetHead("users","",t("multi"),monF(m)+" "+n(D.year)+" · "+t("multiHint",{a:money(D.rate)}))}
+    ${left.length?`<div class="rows" style="margin-top:8px">${left.map(x=>`<label class="rw" style="display:flex;margin:0;cursor:pointer;color:var(--text)">${avatar(x.f,x.i)}<span class="tx"><b>${esc(x.f.name)}</b><small>${t("flat")} ${n(x.f.no)}${x.f.paid[m]>0?" · "+money(x.f.paid[m]):""}</small></span><input type="checkbox" class="mlt" value="${esc(x.f.no)}" style="width:22px;height:22px"></label>`).join("")}</div>
+      <div style="height:16px"></div><button class="btn primary" onclick="saveMulti()">${ic("check")}${t("admSave")}</button>`
+      :`<div class="empty">${tile("check","c5")}${t("multiNone")}</div>`}`)}
+function saveMulti(){const flats=[...document.querySelectorAll(".mlt:checked")].map(x=>x.value);if(!flats.length)return toast(t("needAmt"));
+  saveOps(flats.map(no=>({type:"payment",flat:no,month:S.memMonth,amount:S.data.rate})))}
 async function saveTok(ev){ev.preventDefault();const tok=$("tokIn").value.trim();if(!tok)return;
   if(S.data.admin_lock&&!(await pinOk($("tokPin").value.replace(/\s/g,""))))return toast(t("pinWrong"));
   LS.set("ghTok",tok);LS.set("ghRepo",S.data.repo);
@@ -1385,11 +1421,19 @@ function notifyOn(){return NOTE_OK&&LS.get("notify",false)&&Notification.permiss
 async function payState(v){try{const c=await caches.open("society-state");
   if(v===undefined){const r=await c.match("pay-state");return r?await r.json():null}
   await c.put("pay-state",new Response(JSON.stringify(v)))}catch(e){}return null}
-function phoneNote(title,body){navigator.serviceWorker.ready.then(r=>r.showNotification(title,{body,icon:"icon-192.png",badge:"icon-192.png",tag:"pay",data:{url:location.href}})).catch(()=>{})}
+function phoneNote(title,body,tag){navigator.serviceWorker.ready.then(r=>r.showNotification(title,{body,icon:"icon-192.png",badge:"icon-192.png",tag:tag||"pay",data:{url:location.href}})).catch(()=>{})}
+/* Besides a recorded payment the phone also tells about a new notice. Two reminders come only
+   from the background check (sw.js), because with the app open the home screen shows them
+   anyway: the member's own dues after the due day, and for the committee and its helpers that
+   the pending list should be sent. Each at most once a week; opening the app counts as seen. */
+function weekKey(){const D=S.data,d=new Date();return D.year+"-"+d.getMonth()+"-"+Math.floor((d.getDate()-(D.due_day||1))/7)}
 async function checkPayments(){const f=me();if(!f||!("caches" in window))return;
-  const old=await payState(),same=old&&String(old.flat)===String(S.flat)&&old.year===S.data.year;
+  const D=S.data,old=await payState(),same=old&&String(old.flat)===String(S.flat)&&old.year===D.year;
   const got=same?f.paid.map((v,m)=>({m,a:v-(old.paid[m]||0)})).filter(x=>x.a>0):[];
-  await payState({flat:S.flat,year:S.data.year,paid:f.paid,pass:S.pass,lang:S.lang,on:notifyOn(),title:t("payGot"),body:t("payGotB"),mons:MON[S.lang+"F"]});
+  const top=D.notices.reduce((m,x)=>Math.max(m,x.id),0),fresh=same&&old.notice!==undefined?D.notices.filter(x=>x.id>old.notice):[];
+  await payState({flat:S.flat,year:D.year,paid:f.paid,pass:S.pass,lang:S.lang,on:notifyOn(),title:t("payGot"),body:t("payGotB"),mons:MON[S.lang+"F"],
+    notice:top,nTitle:t("noteNew"),week:weekKey(),dTitle:t("dueTitle"),dBody:t("dueBody"),share:canShare(),sTitle:t("nagTitle"),sBody:t("nudge")});
+  if(fresh.length&&notifyOn())phoneNote(t("noteNew"),fresh.map(x=>x.title).join("\n"),"notice");
   if(!got.length)return;
   const lines=got.map(x=>t("payGotB",{m:monF(x.m),a:money(x.a)}));
   lines.forEach(toast);
