@@ -352,7 +352,7 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   notif:"भरणा जमा झाल्याची सूचना",notifOn:"चालू",notifOff:"बंद. चालू करण्यासाठी दाबा",
   notifBlocked:"मोबाईलच्या सेटिंगमध्ये या ॲपसाठी Notifications चालू करा.",
   notifReady:"सूचना चालू झाली. तुमचा भरणा नोंदवल्यावर मोबाईलवर सूचना येईल.",notifStop:"सूचना बंद केली",
-  pendSend:"पेंडिंग यादी WhatsApp वर पाठवा",
+  pendSend:"पेंडिंग यादी WhatsApp वर पाठवा",expSend:"मासिक खर्च WhatsApp वर पाठवा",
   admin:"समिती: मोबाईलवरून नोंदी",admOnS:"चालू · {n} नोंदी PC ची वाट पाहत आहेत",
   admIntro:"या मोबाईलवरून भरणा, खर्च, सूचना व तक्रारी नोंदवण्यासाठी GitHub टोकन एकदा टाका. टोकन फक्त या मोबाईलवर राहते.",
   admNoRepo:"आधी PC ॲपमधून एकदा Publish करा.",admTok:"GitHub टोकन",admStart:"चालू करा",admOn:"मोबाईलवरून नोंदी चालू झाल्या",
@@ -429,7 +429,7 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   notif:"Payment notifications",notifOn:"On",notifOff:"Off. Tap to turn on",
   notifBlocked:"Allow notifications for this app in the phone's settings.",
   notifReady:"Notifications are on. You will be told when your payment is recorded.",notifStop:"Notifications turned off",
-  pendSend:"Send pending list on WhatsApp",
+  pendSend:"Send pending list on WhatsApp",expSend:"Send monthly expenses on WhatsApp",
   admin:"Committee: entries from the phone",admOnS:"On · {n} entries waiting for the PC",
   admIntro:"Paste the GitHub token once to enter payments, expenses, notices and complaints from this phone. The token stays on this phone only.",
   admNoRepo:"Publish once from the PC app first.",admTok:"GitHub token",admStart:"Turn on",admOn:"Entries from the phone are on",
@@ -618,7 +618,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v15 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v16 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -758,7 +758,8 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
       return `<${tag} class="rw"${tag==="button"?` onclick="expEdit(${e.id})"`:""}><span class="ct" style="background:${esc(col)}22;color:${esc(col)}">${ic(CAT_IC[e.cat]||"box")}</span><span class="tx"><b>${esc(plain(e[S.lang]||e.en))}</b><small>${fmtDate(e.date)}</small></span><span class="am num">${money(e.amount)}</span></${tag}>`}).join("")}
       <div class="rw"><span class="ct" style="background:var(--brandSoft);color:var(--brand);font-weight:800">Σ</span><span class="tx"><b>${t("total")} · ${monF(sel)}</b></span><span class="am num">${money(mo.expenses)}</span></div></div>`
       :`<div class="empty">${tile("receipt","c7")}${t("noExp")}</div>`}
-    ${canEdit()?`<div style="height:12px"></div><button class="btn primary" onclick="expSheet()">${ic("pen")}${t("admExp")}</button>`:""}</div>
+    ${canEdit()?`<div style="height:12px"></div><button class="btn primary" onclick="expSheet()">${ic("pen")}${t("admExp")}</button>`:""}
+    ${isAdmin()?`<div style="height:10px"></div><button class="btn wa" onclick="wa(expenseText(${sel}),'')">${ic("chat")}${t("expSend")}</button>`:""}</div>
   <div class="card"><h3>${tile("pie","c6","sm")}${t("cats")}</h3>
     <div class="dn">${donut(cats.map(([k,v])=>({v,color:meta(k).color||"#6366f1"})),ctot)}<div class="mid"><span>${t("ytdOut")}</span><b class="num">${money(T2.expenses)}</b></div></div>
     ${cats.map(([k,v])=>{const c=meta(k);
@@ -1279,6 +1280,13 @@ function reportText(m,note){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],
     x("🙏 *आपल्या सहकार्याबद्दल धन्यवाद!*","🙏 *Thank you for your cooperation!*"),x("📞 काही शंका असल्यास संपर्क करा.","📞 Contact the committee for any queries."),"",
     bar,`🏢 *${bname()}${x(" समिती"," Committee")}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
   return L.join("\n")}
+/* only the month's expenses, for the society group */
+function expenseText(m){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],R=v=>inr(v,L0),x=(a,b)=>mr?a:b,d=new Date(),bar="━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+  const L=[`🏢 *${bname()}*`,bar,`📤 *${monF(m)} ${n(D.year)} - ${x("मासिक खर्च","Monthly expenses")}*`,bar,""];
+  if(!M.entries.length)L.push(x("या महिन्यात खर्च नोंदवलेला नाही.","No expenses recorded this month."));
+  M.entries.forEach((e,i)=>L.push(`${n(i+1)}. ${e[L0]||e.en}: ${R(e.amount)}${e.date?`  (${fmtDate(e.date)})`:""}`));
+  L.push("","─────────────────────",`💵 *${x("एकूण खर्च","Total expenses")}:* ${R(M.expenses)}`,"",bar,`🏢 *${bname()}${x(" समिती"," Committee")}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
+  return L.join("\n")}
 function reminderText(f){const D=S.data,mr=S.lang==="mr",R=v=>inr(v,S.lang),x=(a,b)=>mr?a:b;
   const months=f.paid.map((v,m)=>m<dueTo()&&v<D.rate?mon(m):"").filter(Boolean).join(", ")||"-";
   return [`🏢 *${bname()}*`,"",x(`🙏 नमस्कार *${f.name}* जी (फ्लॅट ${dev(f.no)}),`,`🙏 Hello *${f.name}* (Flat ${f.no}),`),"",
@@ -1289,6 +1297,7 @@ function reportsSheet(){const D=S.data,last=lastMonth(),dues=D.flats.map((f,i)=>
     <label>${t("month")}<select id="rpMonth">${D.months.map((_,m)=>m<=last?`<option value="${m}"${m===curMonth()?" selected":""}>${monF(m)}</option>`:"").join("")}</select></label>
     <label>${t("repNote")}<input id="rpNote" maxlength="200"></label>
     <div style="height:16px"></div><button class="btn wa" onclick="wa(reportText(+$('rpMonth').value,$('rpNote').value.trim()),'')">${ic("chat")}${t("repMonth")}</button>
+    <div style="height:10px"></div><button class="btn" onclick="wa(expenseText(+$('rpMonth').value),'')">${ic("receipt")}${t("expSend")}</button>
     <div style="height:10px"></div><button class="btn" onclick="sendPending(+$('rpMonth').value)">${ic("list")}${t("pendSend")}</button>
     <h3 style="margin:18px 0 2px;font-size:15px">${t("repDues")}</h3>
     ${dues.length?`<div class="rows">${dues.map(x=>`<div class="rw">${avatar(x.f,x.i)}<span class="tx"><b>${esc(x.f.name)}</b><small>${t("flat")} ${n(x.f.no)} · ${money(x.o)}</small></span><button class="chip good" onclick="wa(reminderText(S.data.flats[${x.i}]),'')">${ic("chat")}WhatsApp</button></div>`).join("")}</div>`
