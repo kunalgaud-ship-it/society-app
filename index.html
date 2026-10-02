@@ -371,6 +371,9 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   setPayee:"खातेदाराचे नाव",setPhone:"समितीचा WhatsApp नंबर",setPay:"ऑनलाइन पेमेंट लिंक (ऐच्छिक)",setBad:"माहिती तपासा.",
   xlTitle:"Excel डाउनलोड",xlS:"संपूर्ण वर्षाचा हिशोब",newYear:"नवीन वर्ष सुरू करा",
   newYearSure:"{y} चा हिशोब संग्रहित होईल आणि {z} रिकामे सुरू होईल. आधी Excel डाउनलोड करा. पुढे जायचे?",
+  hoTitle:"समितीचे काम दुसऱ्याकडे द्या",hoS:"समितीचा फ्लॅट व PIN बदला",hoFlat:"समितीचा फ्लॅट",hoPin:"नवीन PIN (४ ते ८ अंक; रिकामे = तोच ठेवा)",hoOld:"सध्याचा PIN",
+  hoBadPin:"PIN ४ ते ८ अंकांचा हवा.",hoWarn:"फ्लॅट बदलल्यावर या मोबाईलवरून नोंदी बंद होतील. नवीन सदस्याने त्याच्या फ्लॅटची लिंक उघडून स्वतःचे टोकन व नवीन PIN टाकावा.",
+  hoSure:"समितीचा फ्लॅट बदलल्यावर हा मोबाईल सामान्य सदस्याचा होईल. नक्की?",
   conName:"नाव",conRole:"काम",conPhone:"मोबाईल नंबर",conAdd:"संपर्क जोडा",
   payGot:"भरणा जमा झाला ✅",payGotB:"{m} महिन्याचे {a} जमा झाले. धन्यवाद!"},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
@@ -448,6 +451,9 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   setPayee:"Payee name",setPhone:"Committee WhatsApp number",setPay:"Online payment link (optional)",setBad:"Check the values.",
   xlTitle:"Download Excel",xlS:"The whole year's accounts",newYear:"Start a new year",
   newYearSure:"{y} is archived and {z} starts empty. Download the Excel first. Continue?",
+  hoTitle:"Hand over the committee work",hoS:"Change the committee flat and PIN",hoFlat:"Committee flat",hoPin:"New PIN (4 to 8 digits; empty = keep it)",hoOld:"Current PIN",
+  hoBadPin:"The PIN must be 4 to 8 digits.",hoWarn:"After the flat is changed, entries from this phone stop. The new member opens the link of that flat and enters their own token and the new PIN.",
+  hoSure:"After the committee flat is changed this phone becomes an ordinary member's phone. Are you sure?",
   conName:"Name",conRole:"Work",conPhone:"Mobile number",conAdd:"Add contact",
   payGot:"Payment received ✅",payGotB:"{a} received for {m}. Thank you!"}
 };
@@ -618,7 +624,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v16 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v17 · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -1108,6 +1114,7 @@ function applyOne(D,o){const find=()=>{for(const M of D.months){const i=M.entrie
   else if(o.type==="contact_add")D.contacts.push({id:o.id,name:o.name,role:o.role||"",phone:o.phone});
   else if(o.type==="contact_delete")D.contacts=D.contacts.filter(x=>x.id!==o.ref);
   else if(o.type==="flat_name"){const f=D.flats.find(x=>String(x.no)===String(o.flat));if(f)f.name=o.name}
+  else if(o.type==="committee"){D.admin_flat=String(o.admin_flat);if(o.lock)D.admin_lock=o.lock}
   else if(o.type==="settings"){D.rate=o.rate;D.opening=o.opening;D.due_day=o.due_day;Object.assign(D.contact,{upi:o.upi,payee:o.payee,phone:o.phone,pay_url:o.pay_url})}
   else if(o.type==="new_year"){recompute(D);D.opening=D.balance;D.year+=1;D.flats.forEach(f=>f.paid=f.paid.map(()=>0));D.months.forEach(M=>M.entries=[])}}
 /* entries still waiting for the PC, laid over the published data (not needed once the phone is in charge) */
@@ -1155,7 +1162,7 @@ function adminSheet(){if(!isAdmin())return;
   const D=S.data;
   sheet(`${sheetHead("pen","",t("admin"),D.cloud?t("cloudOnS"):"")}<div class="rows" style="margin-top:8px">
       ${item("chat","c4",t("repTitle"),t("repS"),"reportsSheet()")}
-      ${D.cloud?item("wallet","",t("setTitle"),t("setS"),"settingsSheet()"):""}
+      ${D.cloud?item("wallet","",t("setTitle"),t("setS"),"settingsSheet()")+item("user","c5",t("hoTitle"),t("hoS"),"handoverSheet()"):""}
       ${item("down","c5",t("xlTitle"),t("xlS"),"excelDownload()")}</div>
     ${D.cloud?"":`<h3 style="margin:18px 0 2px;font-size:15px">${t("admWait")}</h3><p class="small muted">${t("admWaitS")}</p>
       ${S.waiting.length?`<div class="rows">${S.waiting.map(o=>`<div class="rw"><span class="tx"><b style="white-space:normal">${esc(opLabel(o))}</b><small>${fmtDate(o.date)}</small></span><button class="chip bad" onclick="undoOp(${o.id})">${ic("x")}${t("admDel")}</button></div>`).join("")}</div>`
@@ -1252,6 +1259,25 @@ function settingsSheet(){if(!cloud())return;const D=S.data,c=D.contact,num='type
 function saveSettings(){const v=id=>$(id).value.trim(),rate=+v("stRate"),opening=+v("stOpen"),due=Math.round(+v("stDue")),upi=v("stUpi"),ph=v("stPhone"),pay=v("stPay");
   if(!(rate>0)||v("stOpen")===""||!isFinite(opening)||!(due>=0&&due<=28)||(upi&&!/^[\w.\-]{2,}@[A-Za-z][\w.\-]+$/.test(upi))||(ph&&!phone12(ph))||(pay&&!/^https:\/\/\S+$/.test(pay)))return toast(t("setBad"));
   saveOp({type:"settings",rate,opening,due_day:due,upi,payee:v("stPayee")||S.data.building,phone:phone12(ph),pay_url:pay})}
+/* Handing the committee work to another member: the committee flat and its PIN. The data keeps
+   only a slow hash of the PIN (same as the PC app made). Once the flat is changed this phone is
+   an ordinary member's phone; the new committee member opens the personal link of the new flat. */
+function handoverSheet(){if(!cloud())return;const D=S.data,pinIn=id=>`<input id="${id}" type="password" inputmode="numeric" autocomplete="off" maxlength="8">`;
+  sheet(`${sheetHead("user","c5",t("hoTitle"),t("hoS"))}
+    <label>${t("hoFlat")}<select id="hoFlat">${D.flats.map(f=>`<option value="${esc(f.no)}"${String(f.no)===adminFlat()?" selected":""}>${n(f.no)} - ${esc(f.name)}</option>`).join("")}</select></label>
+    <label>${t("hoPin")}${pinIn("hoPin")}</label>${D.admin_lock?`<label>${t("hoOld")}${pinIn("hoOld")}</label>`:""}
+    <div class="banner warn" style="margin:16px 0">${ic("alert")}<span>${t("hoWarn")}</span></div>
+    <button class="btn primary" onclick="saveHandover()">${ic("check")}${t("admSave")}</button>`)}
+async function pinLock(pin){const salt=crypto.getRandomValues(new Uint8Array(16)),iter=150000;
+  const km=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
+  return {salt:ub64(salt),iter,hash:ub64(new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:iter,hash:"SHA-256"},km,256)))}}
+async function saveHandover(){const D=S.data,flat=$("hoFlat").value,pin=$("hoPin").value.replace(/\s/g,""),moved=flat!==adminFlat();
+  if(pin&&!/^\d{4,8}$/.test(pin))return toast(t("hoBadPin"));
+  if(!pin&&!moved)return closeSheet();
+  if(D.admin_lock&&!(await pinOk($("hoOld").value.replace(/\s/g,""))))return toast(t("pinWrong"));
+  if(moved&&!confirm(t("hoSure")))return;
+  const op={type:"committee",admin_flat:flat};if(pin)op.lock=await pinLock(pin);
+  saveOp(op)}
 /* the finished year stays in the repository as archive-<year>.json (a copy of data.json) */
 function newYear(){const D=S.data;if(!cloud()||!confirm(t("newYearSure",{y:n(D.year),z:n(D.year+1)})))return;
   run(async()=>{const name="archive-"+D.year+".json",old=await gh(name),cur=await gh("data.json");
