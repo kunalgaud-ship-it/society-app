@@ -2,7 +2,7 @@
    App files are fetched from the network first (so updates arrive at once) and fall back
    to the saved copy when offline. Fonts are kept once downloaded. data.json is not handled
    here - the page keeps its own last copy. Also shows the payment notifications. */
-const CACHE = "society-app-v18";
+const CACHE = "society-app-v19";
 const STATE = "society-state";          // written by the page: flat, last seen payments, passcode
 const SHELL = ["./", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
@@ -40,8 +40,9 @@ self.addEventListener("fetch", e => {
   );
 });
 
-/* Payment notifications. The page shows them whenever it loads new data; on Android an
-   installed app is also woken now and then (periodic sync) to look while it is closed. */
+/* Notifications: a recorded payment, a new notice, and reminders after the due day. The page
+   shows the first two whenever it loads new data; on Android an installed app is also woken
+   now and then (periodic sync) to look while it is closed. */
 function b64(s) { const bin = atob(s), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
 async function decrypt(enc, pass) {
   const km = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
@@ -70,11 +71,28 @@ async function checkPayments() {
     } catch (e) { /* no inbox */ }
     const got = data.year === st.year
       ? flat.paid.map((v, m) => ({ m, a: v - (st.paid[m] || 0) })).filter(x => x.a > 0) : [];
-    await store.put("pay-state", new Response(JSON.stringify({ ...st, year: data.year, paid: flat.paid })));
-    if (!got.length) return;
-    const body = got.map(x => st.body.replace("{m}", st.mons[x.m]).replace("{a}", money(x.a, st.lang))).join("\n");
-    await self.registration.showNotification(st.title, { body, icon: "icon-192.png", badge: "icon-192.png", tag: "pay",
-      data: { url: self.registration.scope + "#k=" + st.pass } });
+    const notes = [];                     // [tag, title, body]
+    if (got.length) notes.push(["pay", st.title, got.map(x => st.body.replace("{m}", st.mons[x.m]).replace("{a}", money(x.a, st.lang))).join("\n")]);
+    // a new notice
+    const top = (data.notices || []).reduce((m, x) => Math.max(m, x.id), 0);
+    const fresh = st.notice === undefined ? [] : (data.notices || []).filter(x => x.id > st.notice);
+    if (fresh.length && st.nTitle) notes.push(["notice", st.nTitle, fresh.map(x => x.title).join("\n")]);
+    // after the due day, at most once a week: own dues, and for the committee / helpers "send the pending list"
+    const now = new Date(), cm = now.getMonth(), rate = data.rate, day = data.due_day;
+    const week = data.year + "-" + cm + "-" + Math.floor((now.getDate() - (day || 1)) / 7);
+    if (day && data.year === now.getFullYear() && now.getDate() >= day && st.week !== undefined && week !== st.week) {
+      const sum = flat.paid.slice(0, cm + 1).reduce((s, v) => s + v, 0);
+      const owe = flat.paid[cm] >= rate || sum >= rate * (cm + 1) ? 0 : rate - flat.paid[cm];
+      if (owe > 0) notes.push(["due", st.dTitle, st.dBody.replace("{m}", st.mons[cm]).replace("{a}", money(owe, st.lang))]);
+      const left = data.flats.filter(f => f.paid[cm] < rate).length;
+      const count = st.lang === "mr" ? String(left).replace(/\d/g, d => "०१२३४५६७८९"[d]) : String(left);
+      if (st.share && left) notes.push(["nag", st.sTitle, st.sBody.replace("{m}", st.mons[cm]).replace("{n}", count)]);
+      st.week = week;
+    }
+    await store.put("pay-state", new Response(JSON.stringify({ ...st, year: data.year, paid: flat.paid, notice: top })));
+    for (const [tag, title, body] of notes)
+      await self.registration.showNotification(title, { body, icon: "icon-192.png", badge: "icon-192.png", tag,
+        data: { url: self.registration.scope + "#k=" + st.pass } });
   } catch (e) { /* no internet or a new passcode: the page reports it on the next open */ }
 }
 
