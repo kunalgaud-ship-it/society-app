@@ -283,6 +283,21 @@ button.mc{width:100%;font:inherit}
 .pick{display:grid;text-align:left;margin-top:6px}
 #toasts{position:fixed;left:14px;right:14px;bottom:calc(var(--tabH) + 26px + env(safe-area-inset-bottom));z-index:60;display:grid;gap:8px;justify-items:center;pointer-events:none}
 .toast{background:#0b1020;color:#fff;padding:12px 17px;border-radius:15px;font-weight:700;font-size:13.5px;box-shadow:0 18px 40px -12px rgba(0,0,0,.7);animation:in .25s both;border:1px solid rgba(255,255,255,.1)}
+/* larger text for members who find the normal size small */
+body.big{zoom:1.15}
+/* pull down at the top of a page to refresh */
+#ptr{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-70px);z-index:30;width:42px;height:42px;border-radius:50%;background:var(--panel);box-shadow:var(--shadow);border:1px solid var(--line);display:grid;place-items:center;color:var(--brand);transition:transform .2s;pointer-events:none}
+#ptr.on .ic{animation:spin .8s linear infinite}
+/* upcoming events */
+.ev{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)} .ev:last-child{border-bottom:0;padding-bottom:2px}
+.ev .d{width:48px;height:48px;border-radius:14px;background:var(--brandSoft);color:var(--brand);display:grid;place-content:center;line-height:1.05;flex-shrink:0;text-align:center}
+.ev .d b{font-size:18px;display:block;font-weight:800} .ev .d small{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.ev .tx{flex:1;min-width:0} .ev .tx b{display:block;font-size:14.5px;font-weight:700} .ev .tx small{color:var(--muted);font-size:12.5px;font-weight:600}
+.qrbox{width:200px;height:200px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px var(--line);margin:0 auto}
+.qrbox svg{width:100%;height:100%;display:block}
+.srch{position:relative;margin:10px 0 2px}
+.srch .ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);width:18px;height:18px}
+.srch input{padding:11px 13px 11px 40px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -389,7 +404,14 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   helpTitle:"मदतनीस सदस्य",helpS:"अहवाल व स्मरणपत्रे पाठवू शकणारे फ्लॅट",
   helpHint:"निवडलेल्या फ्लॅटच्या मोबाईलवर अहवाल, पेंडिंग यादी, खर्च व स्मरणपत्रे WhatsApp वर पाठवण्याची बटणे दिसतील. नोंदी फक्त समितीच करू शकते.",
   conName:"नाव",conRole:"काम",conPhone:"मोबाईल नंबर",conAdd:"संपर्क जोडा",
-  payGot:"भरणा जमा झाला ✅",payGotB:"{m} महिन्याचे {a} जमा झाले. धन्यवाद!"},
+  payGot:"भरणा जमा झाला ✅",payGotB:"{m} महिन्याचे {a} जमा झाले. धन्यवाद!",
+  events:"आगामी कार्यक्रम",expQ:"खर्च शोधा… (नाव किंवा रक्कम)",noMatch:"काही सापडले नाही.",found:"{n} नोंदी · एकूण {a}",
+  rcptImg:"पावती फोटो म्हणून पाठवा",imgSaved:"पावतीचा फोटो डाउनलोड झाला",
+  textSize:"अक्षरांचा आकार",textNormal:"सामान्य",textBig:"मोठा",
+  shareQr:"दुसऱ्या मोबाईलने हा QR स्कॅन करा – ॲप थेट उघडेल.",shareBtn:"लिंक पाठवा",
+  appPin:"ॲप उघडताना पिन",appPinS:"या मोबाईलवर गोपनीयतेसाठी",appPinOn:"चालू",appPinSet:"नवीन पिन (४ ते ८ अंक)",appPinAgain:"पिन पुन्हा टाका",
+  appPinBad:"दोन्ही पिन जुळत नाहीत.",appPinOff:"पिन काढा",appPinEnter:"ॲप उघडण्यासाठी पिन टाका",appPinForgot:"पिन विसरलात?",appPinDone:"पिन लावला",appPinGone:"पिन काढला",
+  preTitle:"मेंटेनन्स भरायची आठवण",preBody:"{m} चे {a} – शेवटची तारीख {d}. कृपया भरणा करा. 🙏"},
 en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"Notices",more:"More",updated:"Updated",
   offline:"No internet. Showing the last saved data.",hello:"Hello",flat:"Flat",outstanding:"Outstanding",
   allPaid:"All dues cleared. Thank you!",advance:"Paid in advance",pendingMonths:"Pending months",payNow:"Pay now",details:"Details",
@@ -480,7 +502,14 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   helpTitle:"Helper members",helpS:"Flats that may send reports and reminders",
   helpHint:"The chosen flats get the buttons to send the report, pending list, expenses and reminders on WhatsApp. Only the committee can make entries.",
   conName:"Name",conRole:"Work",conPhone:"Mobile number",conAdd:"Add contact",
-  payGot:"Payment received ✅",payGotB:"{a} received for {m}. Thank you!"}
+  payGot:"Payment received ✅",payGotB:"{a} received for {m}. Thank you!",
+  events:"Upcoming events",expQ:"Search expenses… (name or amount)",noMatch:"Nothing found.",found:"{n} entries · total {a}",
+  rcptImg:"Send receipt as a photo",imgSaved:"Receipt photo downloaded",
+  textSize:"Text size",textNormal:"Normal",textBig:"Large",
+  shareQr:"Scan this QR with another phone – the app opens directly.",shareBtn:"Send link",
+  appPin:"PIN to open the app",appPinS:"Privacy on this phone",appPinOn:"On",appPinSet:"New PIN (4 to 8 digits)",appPinAgain:"Repeat the PIN",
+  appPinBad:"The two PINs do not match.",appPinOff:"Remove PIN",appPinEnter:"Enter the PIN to open the app",appPinForgot:"Forgot the PIN?",appPinDone:"PIN set",appPinGone:"PIN removed",
+  preTitle:"Maintenance reminder",preBody:"{a} for {m} – pay by the {d}th. 🙏"}
 };
 
 /* ---------------------------------------------------------------- icons (inline, no downloads) */
@@ -523,7 +552,9 @@ const I={
   cash:'<rect x="2.500" y="6" width="19" height="12" rx="2.500"/><circle cx="12" cy="12" r="2.500"/>',
   box:'<path d="M3.500 8 12 3.500 20.500 8v8L12 20.500 3.500 16zM3.500 8 12 12.500 20.500 8M12 12.500v8"/>',
   call:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
-  list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="3"/>'
+  list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="3"/>',
+  text:'<path d="M5 7V4h14v3M12 4v16M9 20h6"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>'
 };
 const CAT_IC={sweeper:"user",electricity:"bolt",cctv:"cam",water:"drop",motor:"wrench",cleaning:"spark",cash:"cash",other:"box"};
 function ic(name){return `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name]||""}</svg>`}
@@ -637,6 +668,7 @@ async function openData(){
   if(S.inbox&&!data.cloud){try{applyOps(data,(await decrypt(S.inbox,S.pass)).ops||[])}catch(e){}}
   if(S.accMonth===null){const cm=curMonth();let m=cm;while(m>0&&!S.data.months[m].entries.length)m--;S.accMonth=m;S.memMonth=cm}
   if(!me())return pickScreen();
+  if(LS.get("appPin","")&&!S.pinPassed)return pinScreen();
   checkPayments();render();return true}
 
 function fatal(kind){hideTabs();$("app").innerHTML=`<div class="center"><div class="box"><img class="logo" src="icon-192.png" alt=""><h1>${esc(t("name"))}</h1><p>${t(kind)}</p>${kind==="fatal"?`<button class="btn primary" onclick="loadData()">${ic("refresh")} ${t("retry")}</button>`:""}</div></div>`}
@@ -649,7 +681,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v21 ·link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v22 · link${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -760,6 +792,7 @@ function homeView(){const D=S.data,f=me(),cm=curMonth(),mo=D.months[cm],c=monthC
     <button onclick="go('not')">${tile("bell","c3")}${t("qNot")}${unseen()?'<span class="dot"></span>':""}</button><button onclick="contactsSheet()">${tile("call","c4")}${t("qDir")}</button>
     <button onclick="contactCommittee()">${tile("chat","c4")}${t("qCon")}</button><button onclick="shareApp()">${tile("share","c7")}${t("qShare")}</button></div>
   ${top?`<div class="card notice${top.pinned?" pin":""}"><h3>${tile("bell","c3","sm")}${t("latest")}<span class="sp"></span><button onclick="go('not')">${t("all")}${ic("next")}</button></h3>${noticeBody(top)}</div>`:""}
+  ${eventsCard()}
   <div class="card"><h3>${tile("cal","","sm")}${t("myYear",{y:n(D.year)})}</h3>${yearGrid(f)}</div>
   <div class="card"><h3>${tile("bank","c5","sm")}${t("society")}<span class="sp"></span><button onclick="go('acc')">${t("details")}${ic("next")}</button></h3>
     <div class="kp"><div class="k"><span>${t("bank")}</span><b class="num">${money(D.balance)}</b></div><div class="k bad"><span>${t("thisDue",{m:monF(cm)})}</span><b class="num">${money(monthDueAll(cm))}</b></div>
@@ -767,6 +800,11 @@ function homeView(){const D=S.data,f=me(),cm=curMonth(),mo=D.months[cm],c=monthC
     <div class="line small" style="margin-top:10px"><span style="font-weight:600">${monF(cm)}: ${t("paidCount",{a:n(c.paid),b:n(D.flats.length)})}</span><button class="link" onclick="go('mem')">${t("details")}${ic("next")}</button></div>
     <div class="prog"><i style="width:${Math.round(c.paid/D.flats.length*100)}%"></i></div></div>
   ${insightsCard()}`}
+/* the next few dated notices (meetings, festivals, work days), nearest first */
+function eventsCard(){const ev=S.data.notices.filter(x=>x.event&&daysTo(x.event)>=0).sort((a,b)=>a.event<b.event?-1:1).slice(0,3);if(!ev.length)return"";
+  return `<div class="card"><h3>${tile("cal","c6","sm")}${t("events")}<span class="sp"></span><button onclick="go('not')">${t("all")}${ic("next")}</button></h3>
+    ${ev.map(x=>{const d=daysTo(x.event),p=x.event.split("-");
+      return `<div class="ev"><span class="d"><b>${n(+p[2])}</b><small>${mon(+p[1]-1)}</small></span><span class="tx"><b>${esc(x.title)}</b><small>${d===0?t("today"):d===1?t("tomorrow"):t("inDays",{n:n(d)})}</small></span></div>`}).join("")}</div>`}
 function insightsCard(){const it=(S.data.insights||{})[S.lang]||[];if(!it.length)return"";
   return `<div class="card"><h3>${tile("spark","c6","sm")}${t("insights")}</h3><div class="ins">${it.map(x=>`<div class="${esc(x.kind)}"><b>${esc(x.icon)}</b><span>${esc(x.text)}</span></div>`).join("")}</div></div>`}
 
@@ -784,12 +822,14 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
     <div class="chartWrap"><div class="chart">${D.months.map((m,i)=>i>lastMonth()?"":`<button class="cm${i===sel?" active":""}" onclick="setAccMonth(${i})" aria-label="${monF(i)}"><span class="bars"><i class="c-in" style="height:${Math.round(m.collected/max*100)}%"></i><i class="c-out" style="height:${Math.round(m.expenses/max*100)}%"></i></span><small>${mon(i)}</small></button>`).join("")}</div></div>
     <div class="legend"><span><i class="c-in"></i>${t("collected")}</span><span><i class="c-out"></i>${t("expenses")}</span></div></div>
   <div class="card"><h3>${tile("receipt","c3","sm")}${t("expDetail")}</h3>${monthPills(sel,"setAccMonth")}
-    <div class="chips" style="margin:10px 0 4px"><span class="chip info">${ic("down")}${money(mo.collected)}</span><span class="chip warn">${ic("up")}${money(mo.expenses)}</span><span class="chip ${mo.net>=0?"good":"bad"}">${mo.net>=0?t("saving"):t("deficit")} ${money(mo.net,true)}</span></div>
+    <div class="srch">${ic("search")}<input id="expQ" placeholder="${t("expQ")}" autocomplete="off" oninput="expSearch(this.value)"></div>
+    <div id="expRes" style="display:none"></div>
+    <div id="expList"><div class="chips" style="margin:10px 0 4px"><span class="chip info">${ic("down")}${money(mo.collected)}</span><span class="chip warn">${ic("up")}${money(mo.expenses)}</span><span class="chip ${mo.net>=0?"good":"bad"}">${mo.net>=0?t("saving"):t("deficit")} ${money(mo.net,true)}</span></div>
     ${mo.entries.length?`<div class="rows">${mo.entries.map(e=>{const col=meta(e.cat).color||"#6366f1";
       const tag=cloud()?"button":"div";                                    // the committee taps a line to correct it
       return `<${tag} class="rw"${tag==="button"?` onclick="expEdit(${e.id})"`:""}><span class="ct" style="background:${esc(col)}22;color:${esc(col)}">${ic(CAT_IC[e.cat]||"box")}</span><span class="tx"><b>${esc(plain(e[S.lang]||e.en))}</b><small>${fmtDate(e.date)}</small></span><span class="am num">${money(e.amount)}</span></${tag}>`}).join("")}
       <div class="rw"><span class="ct" style="background:var(--brandSoft);color:var(--brand);font-weight:800">Σ</span><span class="tx"><b>${t("total")} · ${monF(sel)}</b></span><span class="am num">${money(mo.expenses)}</span></div></div>`
-      :`<div class="empty">${tile("receipt","c7")}${t("noExp")}</div>`}
+      :`<div class="empty">${tile("receipt","c7")}${t("noExp")}</div>`}</div>
     ${canEdit()?`<div style="height:12px"></div><button class="btn primary" onclick="expSheet()">${ic("pen")}${t("admExp")}</button>`:""}
     ${canShare()?`<div style="height:10px"></div><button class="btn wa" onclick="wa(expenseText(${sel}),'')">${ic("chat")}${t("expSend")}</button>`:""}</div>
   <div class="card"><h3>${tile("pie","c6","sm")}${t("cats")}</h3>
@@ -798,6 +838,19 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
     return `<div class="cat"><span><i style="background:${esc(c.color||"#6366f1")}"></i>${esc(S.lang==="mr"?c.mr:c.en)}</span><b class="num">${money(v)} <span class="muted small">${n(Math.round(v/ctot*100))}%</span></b><div class="track"><i style="width:${Math.round(v/ctot*100)}%;background:${esc(c.color||"#6366f1")}"></i></div></div>`}).join("")}</div>`}
 /* expense names arrive as "emoji name"; the app draws its own icon */
 function plain(s){const i=s.indexOf(" ");return i>0&&i<=8?s.slice(i+1):s}
+/* search the whole year's expenses by name, category or amount; the month list hides while searching */
+function expSearch(q){q=q.trim().toLowerCase();const res=$("expRes"),list=$("expList");if(!res||!list)return;
+  if(!q){res.style.display="none";list.style.display="";return}
+  const D=S.data,meta=k=>D.category_meta[k]||{},hits=[];
+  D.months.forEach((M,m)=>M.entries.forEach(e=>{const txt=[plain(e.en||""),plain(e.mr||""),e.desc||"",meta(e.cat).en||"",meta(e.cat).mr||""].join(" ").toLowerCase();
+    if(txt.includes(q)||String(e.amount).includes(q)||n(String(e.amount)).includes(q))hits.push({m,e})}));
+  hits.sort((a,b)=>a.e.date<b.e.date?1:-1);
+  const tot=hits.reduce((s,x)=>s+x.e.amount,0);
+  res.innerHTML=hits.length?`<div class="chips" style="margin:10px 0 4px"><span class="chip info">${ic("search")}${t("found",{n:n(hits.length),a:money(tot)})}</span></div>
+    <div class="rows">${hits.map(({m,e})=>{const col=meta(e.cat).color||"#6366f1";
+      return `<div class="rw"><span class="ct" style="background:${esc(col)}22;color:${esc(col)}">${ic(CAT_IC[e.cat]||"box")}</span><span class="tx"><b>${esc(plain(e[S.lang]||e.en))}</b><small>${monF(m)} · ${fmtDate(e.date)}</small></span><span class="am num">${money(e.amount)}</span></div>`}).join("")}</div>`
+    :`<div class="empty">${tile("search","c7")}${t("noMatch")}</div>`;
+  res.style.display="";list.style.display="none"}
 
 /* ---------------------------------------------------------------- members */
 function setMemMonth(m){const y=scrollY;S.memMonth=m;render();scrollTo(0,y)}
@@ -875,6 +928,8 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
       :item("home","c5",esc(f.name)+" · "+t("flat")+" "+n(f.no),t("wrongFlat"),"wrongFlat()")}
     ${item("globe","c6",t("language"),t("languageS"),"toggleLang()")}
     ${item(dark?"moon":"sun","c3",t("theme"),dark?t("themeD"):t("themeL"),"toggleTheme()")}
+    ${item("text","c7",t("textSize"),LS.get("big",false)?t("textBig"):t("textNormal"),"setBig(!LS.get('big',false));render()")}
+    ${item("lock","c2",t("appPin"),LS.get("appPin","")?t("appPinOn"):t("notifOff"),"appPinSheet()")}
     ${NOTE_OK?item("bell","c2",t("notif"),t(notifyOn()?"notifOn":"notifOff"),"toggleNotify()"):""}
     ${item("refresh","c7",t("refresh"),t("updated")+": "+fmtStamp(S.data.updated),"refresh()")}</div></div>
   <div class="card"><div class="rows">
@@ -882,8 +937,44 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
     ${item("share","c5",t("share"),t("shareS"),"shareApp()")}
     ${item("lock","c7",t("lock"),t("lockS"),"lockApp()")}</div></div>`}
 function contactCommittee(){const f=me();wa(`🏢 ${bname()}\n${t("flat")} ${f.no} - ${f.name}\n\n${t("hi")}`,S.data.contact.phone)}
-function shareApp(){const url=location.origin+location.pathname+"#k="+S.pass,text=`🏢 ${bname()}\n${t("shareTxt")}`;
-  if(navigator.share)navigator.share({title:bname(),text,url}).catch(()=>{});else copyText(text+"\n"+url)}
+/* the invite link (without a flat: the family member chooses theirs), as a QR for the phone next to you and as a link */
+function appLink(){return location.origin+location.pathname+"#k="+S.pass}
+function shareApp(){sheet(`${sheetHead("share","c5",t("share"),t("shareS"))}
+    <div class="rc" style="margin-top:14px"><div class="qrbox">${qrSvg(appLink())}</div><p style="margin-top:12px">${t("shareQr")}</p></div>
+    <button class="btn primary" onclick="shareLink()">${ic("share")}${t("shareBtn")}</button>
+    <div style="height:10px"></div><button class="btn" onclick="copyText(appLink())">${ic("copy")}${t("copy")}</button>`)}
+function shareLink(){const url=appLink(),text=`🏢 ${bname()}\n${t("shareTxt")}`;
+  if(navigator.share)navigator.share({title:bname(),text,url}).catch(()=>{});else wa(text+"\n"+url,"")}
+/* bigger text on this phone */
+function setBig(on){document.body.classList.toggle("big",!!on);LS.set("big",!!on)}
+setBig(LS.get("big",false));
+/* An extra PIN this phone asks for before the app opens: for a phone the whole family uses. It
+   stays on this phone only (a hash of it); "forgot" clears it together with the saved passcode. */
+async function sha(s){return ub64(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s))))}
+function pinScreen(){hideTabs();
+  $("app").innerHTML=`<div class="center"><form class="box" onsubmit="return tryAppPin(event)"><img class="logo" src="icon-192.png" alt=""><h1>${esc(bname())}</h1><p></p>
+    <div class="card lockc">${tile("lock")}<b>${t("appPinEnter")}</b><p class="small" style="margin:4px 0 16px">${t("appPinS")}</p>
+    <input id="apIn" type="password" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="••••" aria-label="PIN" style="letter-spacing:.3em">
+    <div class="err" id="apErr"></div><button class="btn primary" type="submit">${ic("check")}${t("open")}</button></div>
+    <p style="margin-top:18px"><button type="button" class="small muted" onclick="forgotAppPin()">${t("appPinForgot")}</button></p></form></div>`;
+  setTimeout(()=>{const e=$("apIn");if(e)e.focus()},60)}
+async function tryAppPin(ev){ev.preventDefault();const v=$("apIn").value.replace(/\D/g,"");if(!v)return false;
+  if(await sha(v)===LS.get("appPin","")){S.pinPassed=true;S.enter=true;checkPayments();render();scrollTo(0,0)}
+  else{$("apIn").value="";$("apErr").textContent=t("pinWrong")}
+  return false}
+function forgotAppPin(){if(!confirm(t("admSure")))return;LS.del("appPin");S.pinPassed=true;lockApp()}
+function appPinSheet(){const on=!!LS.get("appPin","");
+  sheet(`${sheetHead("lock","c2",t("appPin"),t("appPinS"))}
+    ${on?`<label>${t("pinTitle")}<input id="apOld" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>
+      <div style="height:16px"></div><button class="btn" onclick="removeAppPin()">${ic("x")}${t("appPinOff")}</button>`
+      :`<label>${t("appPinSet")}<input id="apNew" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>
+      <label>${t("appPinAgain")}<input id="apNew2" type="password" inputmode="numeric" autocomplete="off" maxlength="8"></label>
+      <div style="height:16px"></div><button class="btn primary" onclick="saveAppPin()">${ic("check")}${t("admSave")}</button>`}`)}
+async function saveAppPin(){const a=$("apNew").value.replace(/\D/g,""),b=$("apNew2").value.replace(/\D/g,"");
+  if(!/^\d{4,8}$/.test(a))return toast(t("hoBadPin"));if(a!==b)return toast(t("appPinBad"));
+  LS.set("appPin",await sha(a));S.pinPassed=true;closeSheet();render();toast(t("appPinDone"))}
+async function removeAppPin(){if(await sha($("apOld").value.replace(/\D/g,""))!==LS.get("appPin",""))return toast(t("pinWrong"));
+  LS.del("appPin");closeSheet();render();toast(t("appPinGone"))}
 
 /* ---------------------------------------------------------------- pay */
 function sheetHead(icn,c,title,sub){return `<div class="sh">${tile(icn,c)}<div><h2>${title}</h2>${sub?`<p>${sub}</p>`:""}</div></div>`}
@@ -951,9 +1042,10 @@ function afterPay(){const c=S.data.contact;
     <ol class="steps">${[t("lim1"),t("lim2"),t("lim3",{a:money(S.payAmt)})].map(s=>`<li><span>${s}</span></li>`).join("")}</ol>
     <p class="help" style="margin-top:14px">${t("limQr")}</p>
     <button class="btn" onclick="paySheet()">${t("back")}</button>`)}
-function drawQr(){const box=$("payQr");if(!box)return;const q=qrCode(upiUrl());if(!q){box.innerHTML="";return}
-  const n=q.modules.length,pad=4;let d="";q.modules.forEach((row,y)=>row.forEach((on,x)=>{if(on)d+=`M${x+pad} ${y+pad}h1v1h-1z`}));
-  box.innerHTML=`<svg viewBox="0 0 ${n+pad*2} ${n+pad*2}" shape-rendering="crispEdges" role="img" aria-label="UPI QR"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}
+function qrSvg(text){const q=qrCode(text);if(!q)return"";const N=q.modules.length,pad=4;let d="";
+  q.modules.forEach((row,y)=>row.forEach((on,x)=>{if(on)d+=`M${x+pad} ${y+pad}h1v1h-1z`}));
+  return `<svg viewBox="0 0 ${N+pad*2} ${N+pad*2}" shape-rendering="crispEdges" role="img" aria-label="QR"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}
+function drawQr(){const box=$("payQr");if(box)box.innerHTML=qrSvg(upiUrl())}
 
 /* ---------------------------------------------------------------- QR code (byte mode, error correction M) */
 const QR_ECC=[-1,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28];
@@ -1056,15 +1148,50 @@ function receiptsSheet(){const f=me(),P=f.paid.map((v,m)=>({v,m})).filter(x=>x.v
   sheet(`${sheetHead("receipt","c5",t("receipts"),esc(f.name)+" · "+t("flat")+" "+n(f.no))}<div style="height:8px"></div>
     ${P.length?`<div class="rows">${P.map(x=>`<button class="rw" onclick="receiptSheet(${x.m})"><span class="ct" style="background:var(--goodSoft);color:var(--good)">${ic("check")}</span>
       <span class="tx"><b>${monF(x.m)} ${n(S.data.year)}</b><small>${receiptNo(f,x.m)}</small></span><span class="am num">${money(x.v)}</span><span class="go">${ic("next")}</span></button>`).join("")}</div>`
-      :`<div class="empty">${tile("receipt","c5")}${t("noRcpt")}</div>`}`)}
+      :`<div class="empty">${tile("receipt","c5")}${t("noRcpt")}</div>`}
+    ${P.length?`<div style="height:14px"></div><button class="btn wa" onclick="wa(statementText(me()),'')">${ic("chat")}${t("stmt")}</button>`:""}`)}
 function receiptSheet(m){const f=me(),v=f.paid[m];if(!(v>0))return;
   sheet(`<div class="rc"><img src="icon-192.png" alt=""><b>${esc(bname())}</b><span>${t("receipt")}</span>
       <div class="amt num">${money(v)}</div><span class="chip good">${ic("check")}${t("paid")}</span>
       <dl><dt>${t("rcptNo")}</dt><dd>${receiptNo(f,m)}</dd><dt>${t("member")}</dt><dd>${esc(f.name)}</dd><dt>${t("flat")}</dt><dd>${n(f.no)}</dd>
         <dt>${t("month")}</dt><dd>${monF(m)} ${n(S.data.year)}</dd><dt>${t("rcptFor")}</dt><dd>${money(v)}</dd>${payInfo(f,m)?`<dt>${t("payDate")}</dt><dd>${esc(payInfo(f,m))}</dd>`:""}</dl>
       <p>${t("rcptNote")}</p></div>
-    <button class="btn wa" onclick="shareReceipt(${m})">${ic("share")}${t("rcptShare")}</button>
+    <button class="btn primary" onclick="shareReceiptImage(${m})">${ic("share")}${t("rcptImg")}</button>
+    <div style="height:10px"></div><button class="btn wa" onclick="shareReceipt(${m})">${ic("chat")}${t("rcptShare")}</button>
     <div style="height:10px"></div><button class="btn" onclick="receiptsSheet()">${t("receipts")}</button>`)}
+/* The receipt as a picture (PNG), drawn here on the phone: shared to WhatsApp where the phone
+   can share files, otherwise saved to the phone. */
+async function receiptImage(m){const f=me(),v=f.paid[m],D=S.data;if(!(v>0))return null;
+  try{await document.fonts.ready}catch(e){}
+  const W=720,H=820,c=document.createElement("canvas");c.width=W*2;c.height=H*2;const x=c.getContext("2d");x.scale(2,2);
+  const F=(w,s)=>`${w} ${s}px "Plus Jakarta Sans","Noto Sans Devanagari",system-ui,"Segoe UI",Roboto,"Nirmala UI",sans-serif`;
+  const rr=(X,Y,w,h,r)=>{x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()};
+  x.fillStyle="#f3f5fb";x.fillRect(0,0,W,H);
+  rr(24,24,W-48,H-48,34);x.fillStyle="#fff";x.fill();
+  const g=x.createLinearGradient(24,24,W-24,260);g.addColorStop(0,"#1e1b4b");g.addColorStop(.5,"#4338ca");g.addColorStop(1,"#7c3aed");
+  x.save();rr(24,24,W-48,236,34);x.clip();x.fillStyle=g;x.fillRect(24,24,W-48,236);x.fillStyle="rgba(255,255,255,.14)";x.beginPath();x.arc(W-90,40,150,0,7);x.fill();x.restore();
+  try{const im=new Image();im.src="icon-192.png";await im.decode();x.save();rr(56,56,72,72,20);x.clip();x.drawImage(im,56,56,72,72);x.restore()}catch(e){}
+  x.fillStyle="#fff";x.font=F(800,28);x.fillText(bname(),148,98);
+  x.font=F(600,16);x.globalAlpha=.85;x.fillText(t("receipt")+" · "+receiptNo(f,m),148,128);x.globalAlpha=1;
+  x.font=F(700,13);x.globalAlpha=.8;x.fillText(t("rcptFor").toUpperCase()+" · "+monF(m).toUpperCase()+" "+n(D.year),56,190);x.globalAlpha=1;
+  x.font=F(800,52);x.fillText(money(v),56,242);
+  const rows=[[t("member"),f.name],[t("flat"),n(f.no)],[t("month"),monF(m)+" "+n(D.year)],[t("rate"),money(D.rate)]];
+  const pi=payInfo(f,m);if(pi)rows.push([t("payDate"),pi]);
+  let y=330;
+  rows.forEach(([k,val])=>{x.fillStyle="#667085";x.font=F(600,17);x.fillText(k,56,y);
+    x.fillStyle="#0b1020";x.font=F(800,19);x.textAlign="right";x.fillText(String(val),W-56,y);x.textAlign="left";
+    x.strokeStyle="rgba(15,23,42,.12)";x.setLineDash([4,5]);x.beginPath();x.moveTo(56,y+20);x.lineTo(W-56,y+20);x.stroke();x.setLineDash([]);y+=58});
+  rr(56,y+8,170,42,21);x.fillStyle="rgba(5,150,105,.13)";x.fill();x.fillStyle="#059669";x.font=F(800,17);x.fillText("✓  "+t("paid"),80,y+36);
+  x.fillStyle="#667085";x.font=F(500,13);wrapText(x,t("rcptNote"),56,y+92,W-112,20);
+  x.font=F(600,13);x.fillText(fmtStamp(D.updated),56,H-56);x.textAlign="right";x.fillText(bname(),W-56,H-56);x.textAlign="left";
+  return new Promise(r=>c.toBlob(r,"image/png"))}
+function wrapText(x,text,X,Y,w,lh){let line="";String(text).split(" ").forEach(wd=>{const test=line?line+" "+wd:wd;
+  if(x.measureText(test).width>w&&line){x.fillText(line,X,Y);line=wd;Y+=lh}else line=test});if(line)x.fillText(line,X,Y)}
+async function shareReceiptImage(m){let blob=null;try{blob=await receiptImage(m)}catch(e){}if(!blob)return toast(t("admFail"));
+  const f=me(),name=`receipt-${S.data.year}-${String(m+1).padStart(2,"0")}-flat${f.no}.png`,file=new File([blob],name,{type:"image/png"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:t("receipt"),text:receiptText(m)});return}catch(e){if(e.name==="AbortError")return}}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),20000);toast(t("imgSaved"))}
 function receiptText(m,f){f=f||me();
   return `🧾 *${t("receipt")}*\n🏢 *${bname()}*\n━━━━━━━━━━━━━━━━\n${t("rcptNo")}: ${receiptNo(f,m)}\n👤 ${t("member")}: ${f.name} (${t("flat")} ${n(f.no)})\n📅 ${t("month")}: ${monF(m)} ${n(S.data.year)}\n💰 ${t("amount")}: ${money(f.paid[m])}${payInfo(f,m)?`\n🗓 ${t("payDate")}: ${payInfo(f,m)}`:""}\n━━━━━━━━━━━━━━━━\n${t("rcptNote")}`}
 function shareReceipt(m){const text=receiptText(m);if(navigator.share)navigator.share({text}).catch(()=>{});else wa(text,"")}
@@ -1481,7 +1608,8 @@ async function checkPayments(){const f=me();if(!f||!("caches" in window))return;
   const got=same?f.paid.map((v,m)=>({m,a:v-(old.paid[m]||0)})).filter(x=>x.a>0):[];
   const top=D.notices.reduce((m,x)=>Math.max(m,x.id),0),fresh=same&&old.notice!==undefined?D.notices.filter(x=>x.id>old.notice):[];
   await payState({flat:S.flat,year:D.year,paid:f.paid,pass:S.pass,lang:S.lang,on:notifyOn(),title:t("payGot"),body:t("payGotB"),mons:MON[S.lang+"F"],
-    notice:top,nTitle:t("noteNew"),week:weekKey(),dTitle:t("dueTitle"),dBody:t("dueBody"),share:canShare(),sTitle:t("nagTitle"),sBody:t("nudge")});
+    notice:top,nTitle:t("noteNew"),week:weekKey(),dTitle:t("dueTitle"),dBody:t("dueBody"),share:canShare(),sTitle:t("nagTitle"),sBody:t("nudge"),
+    pre:old&&same?old.pre:undefined,pTitle:t("preTitle"),pBody:t("preBody")});
   if(fresh.length&&notifyOn())phoneNote(t("noteNew"),fresh.map(x=>x.title).join("\n"),"notice");
   if(!got.length)return;
   const lines=got.map(x=>t("payGotB",{m:monF(x.m),a:money(x.a)}));
@@ -1510,6 +1638,19 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
 /* iPhone Safari ignores user-scalable=no; stop its pinch gesture here */
 ["gesturestart","gesturechange"].forEach(n=>document.addEventListener(n,e=>e.preventDefault(),{passive:false}));
 document.addEventListener("touchmove",e=>{if(e.scale!==undefined&&e.scale!==1)e.preventDefault()},{passive:false});
+
+/* pull down at the top of a page to refresh the data (like the chat apps) */
+(function(){let y0=null,dy=0;const el=document.createElement("div");el.id="ptr";el.innerHTML=ic("refresh");document.body.appendChild(el);
+  const ok=()=>S.data&&$("tabs").style.display==="block"&&!$("ov").classList.contains("show");
+  document.addEventListener("touchstart",e=>{y0=ok()&&scrollY<=0?e.touches[0].clientY:null;dy=0},{passive:true});
+  document.addEventListener("touchmove",e=>{if(y0===null)return;dy=e.touches[0].clientY-y0;
+    if(dy>0)el.style.transform=`translate(-50%,${Math.min(dy,110)-70}px) rotate(${dy*2}deg)`},{passive:true});
+  document.addEventListener("touchend",()=>{if(y0===null)return;y0=null;
+    if(dy>90){el.classList.add("on");el.style.transform="translate(-50%,30px)";refresh().finally(()=>{el.classList.remove("on");el.style.transform=""})}
+    else el.style.transform=""},{passive:true});
+})();
+/* a light tap feel on buttons (phones that support it) */
+document.addEventListener("click",e=>{if(e.target.closest("button")&&navigator.vibrate)try{navigator.vibrate(8)}catch(x){}},{passive:true});
 
 /* ---------------------------------------------------------------- start */
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S.data&&Date.now()-S.loadedAt>5*60*1000)loadData()});
