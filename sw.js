@@ -2,7 +2,7 @@
    App files are fetched from the network first (so updates arrive at once) and fall back
    to the saved copy when offline. Fonts are kept once downloaded. data.json is not handled
    here - the page keeps its own last copy. Also shows the payment notifications. */
-const CACHE = "society-app-v21";
+const CACHE = "society-app-v22";
 const STATE = "society-state";          // written by the page: flat, last seen payments, passcode
 const SHELL = ["./", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
@@ -88,6 +88,17 @@ async function checkPayments() {
       const count = st.lang === "mr" ? String(left).replace(/\d/g, d => "०१२३४५६७८९"[d]) : String(left);
       if (st.share && left) notes.push(["nag", st.sTitle, st.sBody.replace("{m}", st.mons[cm]).replace("{n}", count)]);
       st.week = week;
+    }
+    // one or two days before the due day, once a month: a gentle reminder when this month is still open
+    if (day && data.year === now.getFullYear() && st.pTitle) {
+      const mk = data.year + "-" + cm, lead = day - now.getDate();
+      if (lead >= 1 && lead <= 2 && st.pre !== mk) {
+        const sum = flat.paid.slice(0, cm + 1).reduce((s, v) => s + v, 0);
+        const owe = flat.paid[cm] >= rate || sum >= rate * (cm + 1) ? 0 : rate - flat.paid[cm];
+        const dd = st.lang === "mr" ? String(day).replace(/\d/g, d => "०१२३४५६७८९"[d]) : String(day);
+        if (owe > 0) notes.push(["pre", st.pTitle, st.pBody.replace("{m}", st.mons[cm]).replace("{a}", money(owe, st.lang)).replace("{d}", dd)]);
+        st.pre = mk;
+      }
     }
     await store.put("pay-state", new Response(JSON.stringify({ ...st, year: data.year, paid: flat.paid, notice: top })));
     for (const [tag, title, body] of notes)
