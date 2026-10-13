@@ -681,7 +681,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v22 · link${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+function diag(){return `v23 ·link${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -1529,12 +1529,26 @@ function reportText(m,note){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],
     x("🙏 *आपल्या सहकार्याबद्दल धन्यवाद!*","🙏 *Thank you for your cooperation!*"),x("📞 काही शंका असल्यास संपर्क करा.","📞 Contact the committee for any queries."),"",
     bar,`🏢 *${bname()}${x(" समिती"," Committee")}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
   return L.join("\n")}
-/* only the month's expenses, for the society group */
-function expenseText(m){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],R=v=>inr(v,L0),x=(a,b)=>mr?a:b,d=new Date(),bar="━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
-  const L=[`🏢 *${bname()}*`,bar,`📤 *${monF(m)} ${n(D.year)} - ${x("मासिक खर्च","Monthly expenses")}*`,bar,""];
-  if(!M.entries.length)L.push(x("या महिन्यात खर्च नोंदवलेला नाही.","No expenses recorded this month."));
-  M.entries.forEach((e,i)=>L.push(`${n(i+1)}. ${e[L0]||e.en}: ${R(e.amount)}${e.date?`  (${fmtDate(e.date)})`:""}`));
-  L.push("","─────────────────────",`💵 *${x("एकूण खर्च","Total expenses")}:* ${R(M.expenses)}`,"",bar,`🏢 *${bname()}${x(" समिती"," Committee")}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
+/* The month's expenses for the society group: every line with its date, the total, what came
+   in, the bank balance now, and who still has dues (up to the current month, like the report). */
+function expenseText(m){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],R=(v,s)=>inr(v,L0,s),x=(a,b)=>mr?a:b,d=new Date();
+  const bar="━━━━━━━━━━━━━━━━━━━━━━━━━━━━",line="─────────────────────",NUM=["1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟"];
+  const meta=k=>D.category_meta[k]||{},dues=D.flats.map(f=>({f,o:owes(f)})).filter(z=>z.o>0),totDue=dues.reduce((s,z)=>s+z.o,0);
+  const L=[`🏢 *${bname()}*`,bar,`📤 *${monF(m)} ${n(D.year)} – ${x("मासिक खर्च","Monthly expenses")}*`,bar,"",x("🙏 *प्रिय सदस्यांनो,*","🙏 *Dear members,*"),
+    x(`${monF(m)} महिन्यात सोसायटीचा खर्च खालीलप्रमाणे झाला:`,`Here is how the society's money was spent in ${monF(m)}:`),"",x("📋 *खर्चाचा तपशील:*","📋 *Expense details:*")];
+  if(!M.entries.length)L.push(x("   (या महिन्यात खर्च नोंदवलेला नाही)","   (no expenses recorded this month)"));
+  M.entries.forEach((e,i)=>L.push(`${NUM[i]||n(i+1)+"."} ${e[L0]||e.en} — *${R(e.amount)}*${e.date?`  _(${fmtDate(e.date)})_`:""}`));
+  L.push(line,`💵 *${x("एकूण खर्च","Total expenses")}:* ${R(M.expenses)}`);
+  const cats=Object.entries(M.categories||{}).sort((a,b)=>b[1]-a[1]);
+  if(cats.length>1){L.push("",x("📊 *खर्च कुठे झाला:*","📊 *Where it went:*"));
+    cats.forEach(([k,v])=>L.push(`   ${meta(k).emoji||"📦"} ${x(meta(k).mr,meta(k).en)||k}: ${R(v)} (${n(Math.round(v/M.expenses*100))}%)`))}
+  L.push("",x("💰 *हिशोब:*","💰 *Accounts:*"),`   📥 ${x("या महिन्यात जमा","Collected this month")}: ${R(M.collected)}`,`   📤 ${x("या महिन्यात खर्च","Spent this month")}: ${R(M.expenses)}`,
+    `   ${M.net>=0?"✅":"❌"} ${M.net>=0?x("बचत","Savings"):x("तूट","Deficit")}: ${R(M.net,true)}`,`   🏦 *${x("बँकेत सध्याची शिल्लक","Bank balance now")}: ${R(D.balance)}*`,"");
+  if(dues.length){L.push(x(`⏳ *थकबाकी असलेले सदस्य (${n(dues.length)}):*`,`⏳ *Members with pending dues (${dues.length}):*`));
+    dues.forEach(z=>L.push(`   • ${t("flat")} ${n(z.f.no)} – ${z.f.name}: *${R(z.o)}*`));
+    L.push(`   💰 *${x("एकूण थकबाकी","Total outstanding")}: ${R(totDue)}*`,"",x("🙏 ज्यांचे बाकी आहे त्यांनी कृपया लवकरात लवकर भरणा करावा ही विनंती.","🙏 Members with pending dues are requested to pay at the earliest."))}
+  else L.push(x("✅ *सर्व सदस्यांचे पैसे जमा झाले आहेत. धन्यवाद!* 🎉","✅ *All members have paid. Thank you!* 🎉"));
+  L.push("",x("📱 संपूर्ण हिशोब व पावत्या सोसायटी ॲपमध्ये पहा.","📱 See the full accounts and receipts in the society app."),bar,`🏢 *${bname()}${x(" समिती"," Committee")}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
   return L.join("\n")}
 function reminderText(f){const D=S.data,mr=S.lang==="mr",R=v=>inr(v,S.lang),x=(a,b)=>mr?a:b;
   const months=f.paid.map((v,m)=>m<dueTo()&&v<D.rate?mon(m):"").filter(Boolean).join(", ")||"-";
