@@ -681,7 +681,8 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-function diag(){return `v23 ·link${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
+const APP_V="v24";
+function diag(){return `${APP_V} · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
    flat's personal invite link. The option is there only while that flat is showing: after
@@ -931,7 +932,7 @@ function moreView(){const f=me(),dark=document.documentElement.getAttribute("dat
     ${item("text","c7",t("textSize"),LS.get("big",false)?t("textBig"):t("textNormal"),"setBig(!LS.get('big',false));render()")}
     ${item("lock","c2",t("appPin"),LS.get("appPin","")?t("appPinOn"):t("notifOff"),"appPinSheet()")}
     ${NOTE_OK?item("bell","c2",t("notif"),t(notifyOn()?"notifOn":"notifOff"),"toggleNotify()"):""}
-    ${item("refresh","c7",t("refresh"),t("updated")+": "+fmtStamp(S.data.updated),"refresh()")}</div></div>
+    ${item("refresh","c7",t("refresh"),t("updated")+": "+fmtStamp(S.data.updated)+" · "+APP_V,"refresh()")}</div></div>
   <div class="card"><div class="rows">
     ${STANDALONE?"":item("phone","c6",t("install"),t("installS"),"installSheet()")}
     ${item("share","c5",t("share"),t("shareS"),"shareApp()")}
