@@ -378,7 +378,6 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   vchTitle:"खर्च पावती",vchNo:"पावती क्र.",paidTo:"कोणाला दिले (ऐच्छिक)",refNo:"बिल / UTR क्रमांक (ऐच्छिक)",vchTo:"कोणाला दिले",vchRef:"बिल / UTR क्र.",
   vchImg:"पावती फोटो म्हणून पाठवा",vchShare:"WhatsApp वर पाठवा",vchEdit:"सुधारा / हटवा",
   vchNote:"समितीने नोंदवलेला खर्च. ही संगणकाने तयार केलेली पावती आहे.",
-  income:"अन्य जमा",addIncome:"अन्य जमा नोंदवा",noIncome:"देणगी, व्याज, दंड अशी अन्य जमा येथे दिसेल.",incomeHint:"मेंटेनन्सशिवाय आलेले पैसे: देणगी, बँक व्याज, दंड, हॉल भाडे…",
   pendImg:"पेंडिंग यादी फोटो म्हणून पाठवा",yearImg:"वार्षिक सारांश फोटो म्हणून पाठवा",
   invSend:"पाठवा",invTitle:"सदस्यांना आमंत्रण",invS:"ग्रुपसाठी संदेश व प्रत्येक फ्लॅटची लिंक",invGroup:"गटात पाठवा",invPersonal:"प्रत्येक फ्लॅटची स्वतःची लिंक",
   invHint:"या लिंकने ॲप त्या फ्लॅटसह उघडते; सदस्याला फ्लॅट निवडावा लागत नाही. चुकीचा फ्लॅट निवडला गेल्यासही हीच लिंक पाठवा.",
@@ -484,7 +483,6 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   vchTitle:"Expense voucher",vchNo:"Voucher no.",paidTo:"Paid to (optional)",refNo:"Bill / UTR number (optional)",vchTo:"Paid to",vchRef:"Bill / UTR no.",
   vchImg:"Send voucher as a photo",vchShare:"Send on WhatsApp",vchEdit:"Edit / delete",
   vchNote:"Expense recorded by the committee. This is a computer-generated voucher.",
-  income:"Other income",addIncome:"Add other income",noIncome:"Donations, interest, penalties and other income appear here.",incomeHint:"Money received apart from maintenance: donation, bank interest, penalty, hall rent…",
   pendImg:"Send pending list as a photo",yearImg:"Send the year summary as a photo",
   invSend:"Send",invTitle:"Invite members",invS:"Group message and each flat's own link",invGroup:"Send to group",invPersonal:"Each flat's own link",
   invHint:"Opens the app with that flat already chosen; the member does not pick a flat. Also the fix when a wrong flat was chosen.",
@@ -697,7 +695,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-const APP_V="v28";
+const APP_V="v29";
 function diag(){return `${APP_V} · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
@@ -834,12 +832,7 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
   return `<div class="bal"><div class="lbl">${ic("bank")}${t("bank")}</div><div class="big num" data-count="${Math.round(D.balance)}">${money(D.balance)}</div>
     <div class="io"><div><span>${ic("down")}${t("ytdIn")}</span><b class="num">${money(T2.collected)}</b></div><div><span>${ic("up")}${t("ytdOut")}</span><b class="num">${money(T2.expenses)}</b></div></div>
     <div class="ft"><span>${net>=0?t("saving"):t("deficit")} (${n(D.year)})</span><b class="num${net>=0?"":" neg"}">${money(net,true)}</b></div>
-    ${T2.income?`<div class="ft" style="margin-top:8px"><span>${t("income")}</span><b class="num">${money(T2.income,true)}</b></div>`:""}
     <div class="ft" style="margin-top:8px"><span>${t("thisDue",{m:monF(curMonth())})}</span><b class="num neg">${money(monthDueAll(curMonth()))}</b></div></div>
-  ${(D.income||[]).length||cloud()?`<div class="card"><h3>${tile("down","c5","sm")}${t("income")}</h3>
-    ${(D.income||[]).length?`<div class="rows">${D.income.slice().reverse().map(x=>`<div class="rw"><span class="ct" style="background:var(--goodSoft);color:var(--good)">${ic("down")}</span><span class="tx"><b>${esc(x.desc)}</b><small>${fmtDate(x.date)}${x.mode?" · "+t("mode"+x.mode):""}</small></span><span class="am num">${money(x.amount)}</span>
-      ${cloud()?`<button class="chip bad" onclick="if(confirm(t('admSure')))saveOp({type:'income_delete',ref:${x.id}})">${ic("x")}</button>`:""}</div>`).join("")}</div>`:`<div class="empty">${t("noIncome")}</div>`}
-    ${cloud()?`<div style="height:12px"></div><button class="btn primary" onclick="incomeSheet()">${ic("pen")}${t("addIncome")}</button>`:""}</div>`:""}
   <div class="card"><h3>${tile("chart","","sm")}${t("chart")}</h3>
     <div class="chartWrap"><div class="chart">${D.months.map((m,i)=>i>lastMonth()?"":`<button class="cm${i===sel?" active":""}" onclick="setAccMonth(${i})" aria-label="${monF(i)}"><span class="bars"><i class="c-in" style="height:${Math.round(m.collected/max*100)}%"></i><i class="c-out" style="height:${Math.round(m.expenses/max*100)}%"></i></span><small>${mon(i)}</small></button>`).join("")}</div></div>
     <div class="legend"><span><i class="c-in"></i>${t("collected")}</span><span><i class="c-out"></i>${t("expenses")}</span></div></div>
@@ -1260,17 +1253,6 @@ function inviteSheet(){if(!isAdmin())return;const D=S.data;
     <div class="rows">${D.flats.map((f,i)=>String(f.no)===adminFlat()?"":`<div class="rw">${avatar(f,i)}<span class="tx"><b>${esc(f.name)}</b><small>${t("flat")} ${n(f.no)}</small></span>
       <button class="chip good" style="padding:7px 12px" onclick="wa(inviteText('${esc(String(f.no))}'),'')">${ic("chat")}${t("invSend")}</button></div>`).join("")}</div>`)}
 
-/* ---- other income (not maintenance): donation, interest, penalty, hall rent ... */
-function incomeSheet(){if(!cloud())return;
-  sheet(`${sheetHead("down","c5",t("addIncome"),t("incomeHint"))}
-    <label>${t("admDescE")}<input id="inDesc" maxlength="80"></label>
-    <label>${t("date")}<input id="inDate" type="date" value="${today()}"></label>
-    <label>${t("amount")} (₹)<input id="inAmt" type="number" inputmode="decimal" min="1"></label>
-    <label>${t("payMode")}<select id="inMode"><option value="">—</option>${PAY_MODES.map(k=>`<option value="${k}">${t("mode"+k)}</option>`).join("")}</select></label>
-    <div style="height:16px"></div><button class="btn primary" onclick="saveIncome()">${ic("check")}${t("admSave")}</button>`)}
-function saveIncome(){const desc=$("inDesc").value.trim(),a=+$("inAmt").value,d=$("inDate").value;if(!desc||!(a>0)||!d)return toast(t("needAmt"));
-  saveOp({type:"income_add",desc,date:d,amount:a,mode:$("inMode").value})}
-
 /* ---- the pending list and the year as cards for the group */
 async function pendingCardImage(m){const D=S.data,x=(a,b)=>S.lang==="mr"?a:b;
   const left=D.flats.filter(f=>f.paid[m]<D.rate),rows=left.map(f=>[`${t("flat")} ${n(f.no)} · ${f.name}`,f.paid[m]>0?money(D.rate-f.paid[m])+" "+t("due"):t("due")]);
@@ -1279,9 +1261,9 @@ async function pendingCardImage(m){const D=S.data,x=(a,b)=>S.lang==="mr"?a:b;
     badge:(left.length?"!  ":"✓  ")+x("दरमहा","Monthly")+" "+money(D.rate),color:left.length?"#b45309":"#059669",soft:left.length?"rgba(245,158,11,.17)":"rgba(5,150,105,.13)",note:x("ज्यांचे बाकी आहे त्यांनी कृपया लवकरात लवकर भरणा करावा. 🙏","Members with pending amount are requested to pay at the earliest. 🙏")})}
 async function sharePendingImage(m){if(!canShare())return;let blob=null;try{blob=await pendingCardImage(m)}catch(e){}
   return shareImage(blob,`pending-${S.data.year}-${String(m+1).padStart(2,"0")}.png`,t("pendSend"),pendingText(m))}
-async function yearCardImage(){const D=S.data,T2=D.totals,x=(a,b)=>S.lang==="mr"?a:b,net=T2.collected+(T2.income||0)-T2.expenses;
+async function yearCardImage(){const D=S.data,T2=D.totals,x=(a,b)=>S.lang==="mr"?a:b,net=T2.collected-T2.expenses;
   const rows=D.months.map((M,m)=>M.collected||M.expenses?[mon(m),`${money(M.collected)} / ${money(M.expenses)}`]:null).filter(Boolean);
-  rows.push([t("collected"),money(T2.collected)]);if(T2.income)rows.push([t("income"),money(T2.income)]);rows.push([t("expenses"),money(T2.expenses)],[x("सुरुवातीची शिल्लक","Opening balance"),money(D.opening)]);
+  rows.push([t("collected"),money(T2.collected)],[t("expenses"),money(T2.expenses)],[x("सुरुवातीची शिल्लक","Opening balance"),money(D.opening)]);
   return cardImage({title:x("वार्षिक सारांश","Year summary")+" · "+n(D.year),label:t("bank").toUpperCase(),amount:money(D.balance),rows,
     badge:(net>=0?"✓  ":"!  ")+(net>=0?t("saving"):t("deficit"))+" "+money(net,true),color:net>=0?"#059669":"#e11d48",soft:net>=0?"rgba(5,150,105,.13)":"rgba(225,29,72,.1)",note:x("महिना: जमा / खर्च. ","Month: collected / expenses. ")+t("repCardNote")})}
 async function shareYearImage(){if(!canShare())return;let blob=null;try{blob=await yearCardImage()}catch(e){}
@@ -1392,8 +1374,7 @@ function recompute(D){const meta=D.category_meta||{};D.category_year={};let tc=0
     M.entries.forEach(e=>{e.cat=catOf(e.desc);e.en=((meta[e.cat]||{}).emoji||"📦")+" "+e.desc;e.mr=e.mrx?"📝 "+e.mrx:mrDesc(e.desc);
       M.expenses+=e.amount;M.categories[e.cat]=(M.categories[e.cat]||0)+e.amount;D.category_year[e.cat]=(D.category_year[e.cat]||0)+e.amount});
     M.net=M.collected-M.expenses;tc+=M.collected;te+=M.expenses});
-  D.income=D.income||[];const ti=D.income.reduce((s,x)=>s+(+x.amount||0),0);     // other income: donations, interest, penalties ...
-  D.totals={collected:tc,expenses:te,income:ti,flats:D.flats.length};D.balance=D.opening+tc+ti-te;
+  D.totals={collected:tc,expenses:te,flats:D.flats.length};D.balance=D.opening+tc-te;
   D.notices.sort((a,b)=>(!!b.pinned-!!a.pinned)||b.id-a.id);
   D.insights={mr:insights(D,"mr"),en:insights(D,"en")}}
 /* one entry of the committee, made on the entered values only */
@@ -1407,15 +1388,13 @@ function applyOne(D,o){const find=()=>{for(const M of D.months){const i=M.entrie
   else if(o.type==="complaint_add")D.complaints.unshift({id:o.id,date:o.date,updated:o.date,flat:o.flat||"",title:o.title,status:"open",note:o.note||""});
   else if(o.type==="complaint_update"){const c=D.complaints.find(x=>x.id===o.ref);if(c){if(o.status)c.status=o.status;c.note=o.note||"";c.updated=o.date}}
   else if(o.type==="complaint_delete")D.complaints=D.complaints.filter(x=>x.id!==o.ref);
-  else if(o.type==="income_add"){D.income=D.income||[];D.income.push({id:o.id,date:o.date,desc:o.desc,amount:+o.amount||0,mode:o.mode||""})}
-  else if(o.type==="income_delete")D.income=(D.income||[]).filter(x=>x.id!==o.ref);
   else if(o.type==="contact_add")D.contacts.push({id:o.id,name:o.name,role:o.role||"",phone:o.phone});
   else if(o.type==="contact_delete")D.contacts=D.contacts.filter(x=>x.id!==o.ref);
   else if(o.type==="flat_name"){const f=D.flats.find(x=>String(x.no)===String(o.flat));if(f)f.name=o.name}
   else if(o.type==="helpers")D.helpers=o.flats.map(String);
   else if(o.type==="committee"){D.admin_flat=String(o.admin_flat);if(o.lock)D.admin_lock=o.lock}
   else if(o.type==="settings"){D.rate=o.rate;D.opening=o.opening;D.due_day=o.due_day;Object.assign(D.contact,{upi:o.upi,payee:o.payee,phone:o.phone,pay_url:o.pay_url})}
-  else if(o.type==="new_year"){recompute(D);D.opening=D.balance;D.year+=1;D.flats.forEach(f=>{f.paid=f.paid.map(()=>0);f.info=f.paid.map(()=>null)});D.months.forEach(M=>M.entries=[]);D.income=[]}}
+  else if(o.type==="new_year"){recompute(D);D.opening=D.balance;D.year+=1;D.flats.forEach(f=>{f.paid=f.paid.map(()=>0);f.info=f.paid.map(()=>null)});D.months.forEach(M=>M.entries=[])}}
 /* entries still waiting for the PC, laid over the published data (not needed once the phone is in charge) */
 function applyOps(D,ops){const done=new Set(D.applied||[]);S.waiting=ops.filter(o=>!done.has(o.id));
   if(!S.waiting.length)return;
@@ -1479,7 +1458,6 @@ function opLabel(o){const f=S.data.flats.find(x=>String(x.no)===String(o.flat));
     :o.type==="notice_add"?`${t("not")}: ${o.title}`:o.type==="notice_delete"?`${t("not")}: ${t("admDel")}`
     :o.type==="complaint_add"?`${t("board")}: ${o.title}`:o.type==="complaint_delete"?`${t("board")}: ${t("admDel")}`
     :o.type==="expense_update"?`${t("expenses")} ✎: ${o.desc} · ${money(o.amount)}`:o.type==="expense_delete"?`${t("expenses")}: ${t("admDel")}`
-    :o.type==="income_add"?`${t("income")}: ${o.desc} · ${money(o.amount)}`:o.type==="income_delete"?`${t("income")}: ${t("admDel")}`
     :o.type==="contact_add"?`${t("contacts")}: ${o.name}`:o.type==="contact_delete"?`${t("contacts")}: ${t("admDel")}`
     :o.type==="flat_name"?`${t("admName")}: ${o.name}`:o.type==="settings"?t("setTitle"):o.type==="helpers"?t("helpTitle")
     :o.type==="committee"?t("hoTitle"):o.type==="new_year"?t("newYear")
@@ -1721,11 +1699,10 @@ function excelSheets(D){const meta=D.category_meta||{};
   const exp=[["Voucher","Month","Date","Description","Category","Amount","Paid to","Bill / UTR","Paid by"]];
   D.months.forEach((M,m)=>M.entries.forEach((e,i)=>exp.push([voucherNo(m,i),MON.enF[m],e.date,e.desc,(meta[e.cat]||{}).en||e.cat,e.amount,e.to||"",e.bill||"",e.mode||""])));
   const sum=[["Month","Collected","Expenses","Net"],...D.months.map((M,m)=>[MON.enF[m],M.collected,M.expenses,M.net]),["Total",D.totals.collected,D.totals.expenses,D.totals.collected-D.totals.expenses],
-    [],["Opening balance",D.opening],["Other income",D.totals.income||0],["Bank balance",D.balance],["Monthly maintenance",D.rate],["As of",D.updated]];
-  const inc=[["Date","Description","Amount","Received by"],...(D.income||[]).map(x=>[x.date,x.desc,x.amount,x.mode||""])];
+    [],["Opening balance",D.opening],["Bank balance",D.balance],["Monthly maintenance",D.rate],["As of",D.updated]];
   const pay=[["Flat","Name","Month","Amount","Paid on","Paid by"]];
   D.flats.forEach(f=>f.paid.forEach((v,m)=>{if(v>0){const x=(f.info||[])[m]||{};pay.push([f.no,f.name,MON.enF[m],v,x.d||"",x.mode||""])}}));
-  return [["Collection "+D.year,coll],["Payments "+D.year,pay],["Expenses "+D.year,exp],["Other income "+D.year,inc],["Summary "+D.year,sum]]}
+  return [["Collection "+D.year,coll],["Payments "+D.year,pay],["Expenses "+D.year,exp],["Summary "+D.year,sum]]}
 function excelDownload(){LS.set("xlAt",today());const a=document.createElement("a");a.href=URL.createObjectURL(xlsxBlob(excelSheets(S.data)));a.download="society-accounts-"+S.data.year+".xlsx";
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),20000)}
 
