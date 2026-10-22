@@ -375,6 +375,9 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   multi:"अनेक भरणा एकदम नोंदवा",multiHint:"ज्यांनी {a} दिले त्यांना निवडा",multiNone:"या महिन्यात सर्वांनी भरले आहे.",
   logTitle:"नोंदींचा इतिहास",logS:"कोणती नोंद कधी झाली",logNone:"अद्याप नोंदी नाहीत.",
   payMode:"भरण्याचा प्रकार",modeupi:"UPI",modecash:"रोख",modebank:"बँक / चेक",payDate:"भरल्याची तारीख",
+  vchTitle:"खर्च पावती",vchNo:"पावती क्र.",paidTo:"कोणाला दिले (ऐच्छिक)",refNo:"बिल / UTR क्रमांक (ऐच्छिक)",vchTo:"कोणाला दिले",vchRef:"बिल / UTR क्र.",
+  vchImg:"पावती फोटो म्हणून पाठवा",vchShare:"WhatsApp वर पाठवा",vchEdit:"सुधारा / हटवा",
+  vchNote:"समितीने नोंदवलेला खर्च. ही संगणकाने तयार केलेली पावती आहे.",
   stmt:"वर्षाचा हिशोब WhatsApp वर पाठवा",stmtHead:"{y} मेंटेनन्स हिशोब",quick:"नेहमीचे खर्च",
   verTitle:"मागील स्थिती परत आणा",verS:"चुकून बदल झाला तर",verHint:"प्रत्येक जतन येथे दिसते. जुनी वेळ निवडल्यास त्यानंतरच्या नोंदी रद्द होतात.",
   verNow:"सध्याची",verGo:"परत आणा",verSure:"या वेळेनंतरच्या सर्व नोंदी जातील. नक्की?",verOld:"ही स्थिती PC च्या काळातील आहे; परत आणता येत नाही.",
@@ -473,6 +476,9 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   multi:"Enter several payments at once",multiHint:"tick everyone who paid {a}",multiNone:"Everyone has paid this month.",
   logTitle:"Activity log",logS:"Which entry was made when",logNone:"No entries yet.",
   payMode:"Paid by",modeupi:"UPI",modecash:"Cash",modebank:"Bank / cheque",payDate:"Paid on",
+  vchTitle:"Expense voucher",vchNo:"Voucher no.",paidTo:"Paid to (optional)",refNo:"Bill / UTR number (optional)",vchTo:"Paid to",vchRef:"Bill / UTR no.",
+  vchImg:"Send voucher as a photo",vchShare:"Send on WhatsApp",vchEdit:"Edit / delete",
+  vchNote:"Expense recorded by the committee. This is a computer-generated voucher.",
   stmt:"Send the year's statement on WhatsApp",stmtHead:"{y} maintenance statement",quick:"Usual expenses",
   verTitle:"Bring back an earlier state",verS:"If something was changed by mistake",verHint:"Every save is listed here. Choosing an older time cancels the entries made after it.",
   verNow:"Current",verGo:"Restore",verSure:"All entries made after this time will be lost. Are you sure?",verOld:"This state is from the PC days and cannot be restored.",
@@ -681,7 +687,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-const APP_V="v24";
+const APP_V="v25";
 function diag(){return `${APP_V} · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
@@ -827,8 +833,8 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
     <div id="expRes" style="display:none"></div>
     <div id="expList"><div class="chips" style="margin:10px 0 4px"><span class="chip info">${ic("down")}${money(mo.collected)}</span><span class="chip warn">${ic("up")}${money(mo.expenses)}</span><span class="chip ${mo.net>=0?"good":"bad"}">${mo.net>=0?t("saving"):t("deficit")} ${money(mo.net,true)}</span></div>
     ${mo.entries.length?`<div class="rows">${mo.entries.map(e=>{const col=meta(e.cat).color||"#6366f1";
-      const tag=cloud()?"button":"div";                                    // the committee taps a line to correct it
-      return `<${tag} class="rw"${tag==="button"?` onclick="expEdit(${e.id})"`:""}><span class="ct" style="background:${esc(col)}22;color:${esc(col)}">${ic(CAT_IC[e.cat]||"box")}</span><span class="tx"><b>${esc(plain(e[S.lang]||e.en))}</b><small>${fmtDate(e.date)}</small></span><span class="am num">${money(e.amount)}</span></${tag}>`}).join("")}
+      const tag=e.id?"button":"div";                                        // a line opens its voucher
+      return `<${tag} class="rw"${tag==="button"?` onclick="expVoucher(${e.id})"`:""}><span class="ct" style="background:${esc(col)}22;color:${esc(col)}">${ic(CAT_IC[e.cat]||"box")}</span><span class="tx"><b>${esc(plain(e[S.lang]||e.en))}</b><small>${fmtDate(e.date)}</small></span><span class="am num">${money(e.amount)}</span></${tag}>`}).join("")}
       <div class="rw"><span class="ct" style="background:var(--brandSoft);color:var(--brand);font-weight:800">Σ</span><span class="tx"><b>${t("total")} · ${monF(sel)}</b></span><span class="am num">${money(mo.expenses)}</span></div></div>`
       :`<div class="empty">${tile("receipt","c7")}${t("noExp")}</div>`}</div>
     ${canEdit()?`<div style="height:12px"></div><button class="btn primary" onclick="expSheet()">${ic("pen")}${t("admExp")}</button>`:""}
@@ -1163,8 +1169,14 @@ function receiptSheet(m){const f=me(),v=f.paid[m];if(!(v>0))return;
 /* The receipt as a picture (PNG), drawn here on the phone: shared to WhatsApp where the phone
    can share files, otherwise saved to the phone. */
 async function receiptImage(m){const f=me(),v=f.paid[m],D=S.data;if(!(v>0))return null;
+  const rows=[[t("member"),f.name],[t("flat"),n(f.no)],[t("month"),monF(m)+" "+n(D.year)],[t("rate"),money(D.rate)]];
+  const pi=payInfo(f,m);if(pi)rows.push([t("payDate"),pi]);
+  return cardImage({title:t("receipt")+" · "+receiptNo(f,m),label:t("rcptFor").toUpperCase()+" · "+monF(m).toUpperCase()+" "+n(D.year),amount:money(v),
+    rows,badge:"✓  "+t("paid"),color:"#059669",soft:"rgba(5,150,105,.13)",note:t("rcptNote")})}
+/* one card design for the member's receipt and the expense voucher */
+async function cardImage(o){const D=S.data;
   try{await document.fonts.ready}catch(e){}
-  const W=720,H=820,c=document.createElement("canvas");c.width=W*2;c.height=H*2;const x=c.getContext("2d");x.scale(2,2);
+  const W=720,H=560+o.rows.length*58,c=document.createElement("canvas");c.width=W*2;c.height=H*2;const x=c.getContext("2d");x.scale(2,2);
   const F=(w,s)=>`${w} ${s}px "Plus Jakarta Sans","Noto Sans Devanagari",system-ui,"Segoe UI",Roboto,"Nirmala UI",sans-serif`;
   const rr=(X,Y,w,h,r)=>{x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()};
   x.fillStyle="#f3f5fb";x.fillRect(0,0,W,H);
@@ -1173,26 +1185,47 @@ async function receiptImage(m){const f=me(),v=f.paid[m],D=S.data;if(!(v>0))retur
   x.save();rr(24,24,W-48,236,34);x.clip();x.fillStyle=g;x.fillRect(24,24,W-48,236);x.fillStyle="rgba(255,255,255,.14)";x.beginPath();x.arc(W-90,40,150,0,7);x.fill();x.restore();
   try{const im=new Image();im.src="icon-192.png";await im.decode();x.save();rr(56,56,72,72,20);x.clip();x.drawImage(im,56,56,72,72);x.restore()}catch(e){}
   x.fillStyle="#fff";x.font=F(800,28);x.fillText(bname(),148,98);
-  x.font=F(600,16);x.globalAlpha=.85;x.fillText(t("receipt")+" · "+receiptNo(f,m),148,128);x.globalAlpha=1;
-  x.font=F(700,13);x.globalAlpha=.8;x.fillText(t("rcptFor").toUpperCase()+" · "+monF(m).toUpperCase()+" "+n(D.year),56,190);x.globalAlpha=1;
-  x.font=F(800,52);x.fillText(money(v),56,242);
-  const rows=[[t("member"),f.name],[t("flat"),n(f.no)],[t("month"),monF(m)+" "+n(D.year)],[t("rate"),money(D.rate)]];
-  const pi=payInfo(f,m);if(pi)rows.push([t("payDate"),pi]);
+  x.font=F(600,16);x.globalAlpha=.85;x.fillText(o.title,148,128);x.globalAlpha=1;
+  x.font=F(700,13);x.globalAlpha=.8;x.fillText(o.label,56,190);x.globalAlpha=1;
+  x.font=F(800,52);x.fillText(o.amount,56,242);
   let y=330;
-  rows.forEach(([k,val])=>{x.fillStyle="#667085";x.font=F(600,17);x.fillText(k,56,y);
+  o.rows.forEach(([k,val])=>{x.fillStyle="#667085";x.font=F(600,17);x.fillText(k,56,y);
     x.fillStyle="#0b1020";x.font=F(800,19);x.textAlign="right";x.fillText(String(val),W-56,y);x.textAlign="left";
     x.strokeStyle="rgba(15,23,42,.12)";x.setLineDash([4,5]);x.beginPath();x.moveTo(56,y+20);x.lineTo(W-56,y+20);x.stroke();x.setLineDash([]);y+=58});
-  rr(56,y+8,170,42,21);x.fillStyle="rgba(5,150,105,.13)";x.fill();x.fillStyle="#059669";x.font=F(800,17);x.fillText("✓  "+t("paid"),80,y+36);
-  x.fillStyle="#667085";x.font=F(500,13);wrapText(x,t("rcptNote"),56,y+92,W-112,20);
+  x.font=F(800,17);const bw=x.measureText(o.badge).width+48;
+  rr(56,y+8,bw,42,21);x.fillStyle=o.soft;x.fill();x.fillStyle=o.color;x.fillText(o.badge,80,y+36);
+  x.fillStyle="#667085";x.font=F(500,13);wrapText(x,o.note,56,y+92,W-112,20);
   x.font=F(600,13);x.fillText(fmtStamp(D.updated),56,H-56);x.textAlign="right";x.fillText(bname(),W-56,H-56);x.textAlign="left";
   return new Promise(r=>c.toBlob(r,"image/png"))}
 function wrapText(x,text,X,Y,w,lh){let line="";String(text).split(" ").forEach(wd=>{const test=line?line+" "+wd:wd;
   if(x.measureText(test).width>w&&line){x.fillText(line,X,Y);line=wd;Y+=lh}else line=test});if(line)x.fillText(line,X,Y)}
-async function shareReceiptImage(m){let blob=null;try{blob=await receiptImage(m)}catch(e){}if(!blob)return toast(t("admFail"));
-  const f=me(),name=`receipt-${S.data.year}-${String(m+1).padStart(2,"0")}-flat${f.no}.png`,file=new File([blob],name,{type:"image/png"});
-  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:t("receipt"),text:receiptText(m)});return}catch(e){if(e.name==="AbortError")return}}
+async function shareReceiptImage(m){let blob=null;try{blob=await receiptImage(m)}catch(e){}
+  return shareImage(blob,`receipt-${S.data.year}-${String(m+1).padStart(2,"0")}-flat${me().no}.png`,t("receipt"),receiptText(m))}
+async function shareImage(blob,name,title,text){if(!blob)return toast(t("admFail"));const file=new File([blob],name,{type:"image/png"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title,text});return}catch(e){if(e.name==="AbortError")return}}
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),20000);toast(t("imgSaved"))}
+
+/* ---- expense voucher: one expense line as a receipt the committee can put in the group */
+function findExp(id){for(let m=0;m<12;m++){const i=S.data.months[m].entries.findIndex(e=>e.id===id);if(i>=0)return {e:S.data.months[m].entries[i],m,i}}return null}
+function voucherNo(m,i){return "OGR/EXP/"+S.data.year+"/"+String(m+1).padStart(2,"0")+"/"+String(i+1).padStart(2,"0")}
+function expRows(h){const D=S.data,e=h.e,c=D.category_meta[e.cat]||{},rows=[[t("vchNo"),voucherNo(h.m,h.i)],[t("date"),fmtDate(e.date)||monF(h.m)],[t("admDescE"),plain(e[S.lang]||e.en)],[t("type"),S.lang==="mr"?c.mr:c.en]];
+  if(e.to)rows.push([t("vchTo"),e.to]);if(e.bill)rows.push([t("vchRef"),e.bill]);if(e.mode)rows.push([t("payMode"),t("mode"+e.mode)]);
+  rows.push([t("month"),monF(h.m)+" "+n(D.year)]);return rows}
+function expVoucher(id){const h=findExp(id);if(!h)return;const e=h.e;
+  sheet(`<div class="rc"><img src="icon-192.png" alt=""><b>${esc(bname())}</b><span>${t("vchTitle")}</span>
+      <div class="amt num">${money(e.amount)}</div><span class="chip warn">${ic("up")}${t("expenses")}</span>
+      <dl>${expRows(h).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+      <p>${t("vchNote")}</p></div>
+    ${canShare()?`<button class="btn primary" onclick="shareVoucherImage(${id})">${ic("share")}${t("vchImg")}</button>
+    <div style="height:10px"></div><button class="btn wa" onclick="wa(voucherText(${id}),'')">${ic("chat")}${t("vchShare")}</button>`:""}
+    ${cloud()?`<div style="height:10px"></div><button class="btn" onclick="expEdit(${id})">${ic("pen")}${t("vchEdit")}</button>`:""}`)}
+function voucherText(id){const h=findExp(id);if(!h)return"";const bar="━━━━━━━━━━━━━━━━";
+  return [`🧾 *${t("vchTitle")}*`,`🏢 *${bname()}*`,bar,...expRows(h).map(([k,v])=>`${k}: ${v}`),`💰 ${t("amount")}: ${money(h.e.amount)}`,bar,t("vchNote")].join("\n")}
+async function shareVoucherImage(id){const h=findExp(id);if(!h)return;let blob=null;
+  try{blob=await cardImage({title:t("vchTitle")+" · "+voucherNo(h.m,h.i),label:t("expenses").toUpperCase()+" · "+monF(h.m).toUpperCase()+" "+n(S.data.year),amount:money(h.e.amount),
+    rows:expRows(h).filter(r=>r[0]!==t("vchNo")),badge:"↑  "+t("expenses"),color:"#b45309",soft:"rgba(245,158,11,.17)",note:t("vchNote")})}catch(e){}
+  return shareImage(blob,`voucher-${S.data.year}-${String(h.m+1).padStart(2,"0")}-${h.i+1}.png`,t("vchTitle"),voucherText(id))}
 function receiptText(m,f){f=f||me();
   return `🧾 *${t("receipt")}*\n🏢 *${bname()}*\n━━━━━━━━━━━━━━━━\n${t("rcptNo")}: ${receiptNo(f,m)}\n👤 ${t("member")}: ${f.name} (${t("flat")} ${n(f.no)})\n📅 ${t("month")}: ${monF(m)} ${n(S.data.year)}\n💰 ${t("amount")}: ${money(f.paid[m])}${payInfo(f,m)?`\n🗓 ${t("payDate")}: ${payInfo(f,m)}`:""}\n━━━━━━━━━━━━━━━━\n${t("rcptNote")}`}
 function shareReceipt(m){const text=receiptText(m);if(navigator.share)navigator.share({text}).catch(()=>{});else wa(text,"")}
@@ -1274,8 +1307,8 @@ function recompute(D){const meta=D.category_meta||{};D.category_year={};let tc=0
 /* one entry of the committee, made on the entered values only */
 function applyOne(D,o){const find=()=>{for(const M of D.months){const i=M.entries.findIndex(e=>e.id===o.ref);if(i>=0)return [M,i]}return null};
   if(o.type==="payment"){const f=D.flats.find(x=>String(x.no)===String(o.flat));if(f&&o.month>=0&&o.month<12){f.paid[o.month]=+o.amount||0;if(f.info)f.info[o.month]=+o.amount?{d:o.date,mode:o.mode||""}:null}}
-  else if(o.type==="expense_add"){const M=D.months[o.month];if(M)M.entries.push({id:o.id,date:o.date,amount:+o.amount||0,desc:o.desc,mrx:o.mr||""})}
-  else if(o.type==="expense_update"){const hit=find();if(hit){const e=hit[0].entries[hit[1]];if(e.desc!==o.desc)e.mrx="";e.desc=o.desc;e.date=o.date;e.amount=+o.amount||0}}
+  else if(o.type==="expense_add"){const M=D.months[o.month];if(M)M.entries.push({id:o.id,date:o.date,amount:+o.amount||0,desc:o.desc,mrx:o.mr||"",to:o.to||"",bill:o.bill||"",mode:o.mode||""})}
+  else if(o.type==="expense_update"){const hit=find();if(hit){const e=hit[0].entries[hit[1]];if(e.desc!==o.desc)e.mrx="";e.desc=o.desc;e.date=o.date;e.amount=+o.amount||0;e.to=o.to||"";e.bill=o.bill||"";e.mode=o.mode||""}}
   else if(o.type==="expense_delete"){const hit=find();if(hit)hit[0].entries.splice(hit[1],1)}
   else if(o.type==="notice_add")D.notices.push({id:o.id,date:o.date,title:o.title,body:o.body||"",pinned:!!o.pinned,event:o.event||""});
   else if(o.type==="notice_delete")D.notices=D.notices.filter(x=>x.id!==o.ref);
@@ -1421,12 +1454,19 @@ function expSheet(){const D=S.data,m=S.accMonth,ym=D.year+"-"+String(m+1).padSta
     <label>${t("admDesc")}<input id="exDesc" maxlength="80"></label>
     <label>${t("date")}<input id="exDate" type="date" value="${today().slice(0,7)===ym?today():ym+"-01"}"></label>
     <label>${t("amount")} (₹)<input id="exAmt" type="number" inputmode="decimal" min="1"></label>
+    ${expExtra("ex",{})}
     <div style="height:16px"></div><button class="btn primary" onclick="saveExp()">${ic("check")}${t("admSave")}</button>`)}
+/* who was paid, the bill / UTR number and how it was paid: optional, shown on the voucher */
+function expExtra(p,e){return `<label>${t("paidTo")}<input id="${p}To" maxlength="60" value="${esc(e.to||"")}"></label>
+    <label>${t("refNo")}<input id="${p}Ref" maxlength="40" autocapitalize="characters" value="${esc(e.bill||"")}"></label>
+    <label>${t("payMode")}<select id="${p}Mode"><option value="">—</option>${PAY_MODES.map(k=>`<option value="${k}"${k===e.mode?" selected":""}>${t("mode"+k)}</option>`).join("")}</select></label>`}
+function expExtraVals(p){return {to:$(p+"To").value.trim(),bill:$(p+"Ref").value.trim(),mode:$(p+"Mode").value}}
 /* the name starts with the category's own name, so the PC app files it under the same category */
 function saveExp(){const k=$("exCat").value,c=S.data.category_meta[k]||{en:"Other",mr:"इतर खर्च"},txt=$("exDesc").value.trim(),a=+$("exAmt").value,d=$("exDate").value;
   if(!(a>0)||!d)return toast(t("needAmt"));
   const name=base=>k==="other"?(txt||base):base+(txt?" - "+txt:"");
-  saveOp({type:"expense_add",month:S.accMonth,date:d,amount:a,cat:k,desc:name(c.en),mr:name(c.mr)})}
+  const op=Object.assign({type:"expense_add",month:S.accMonth,date:d,amount:a,cat:k,desc:name(c.en),mr:name(c.mr)},expExtraVals("ex"));
+  saveOp(op,()=>expVoucher(op.id))}                                 // the voucher opens right away, ready to share
 
 function noticeSheet(){sheet(`${sheetHead("bell","c3",t("admNotice"))}
     <label>${t("admTitle")}<input id="ntTitle" maxlength="120"></label>
@@ -1464,10 +1504,11 @@ function expEdit(id){let e=null;S.data.months.forEach(M=>M.entries.forEach(x=>{i
     <label>${t("admDescE")}<input id="eeDesc" maxlength="120" value="${esc(e.desc)}"></label>
     <label>${t("date")}<input id="eeDate" type="date" value="${esc(e.date)}"></label>
     <label>${t("amount")} (₹)<input id="eeAmt" type="number" inputmode="decimal" min="1" value="${e.amount}"></label>
+    ${expExtra("ee",e)}
     <div style="height:16px"></div><button class="btn primary" onclick="saveExpEdit(${id})">${ic("check")}${t("admSave")}</button>
     <div style="height:10px"></div><button class="btn" onclick="if(confirm(t('admSure')))saveOp({type:'expense_delete',ref:${id}})">${ic("x")}${t("admDel")}</button>`)}
 function saveExpEdit(id){const desc=$("eeDesc").value.trim(),a=+$("eeAmt").value,d=$("eeDate").value;if(!desc||!(a>0)||!d)return toast(t("needAmt"));
-  saveOp({type:"expense_update",ref:id,desc,date:d,amount:a})}
+  saveOp(Object.assign({type:"expense_update",ref:id,desc,date:d,amount:a},expExtraVals("ee")),()=>expVoucher(id))}
 function settingsSheet(){if(!cloud())return;const D=S.data,c=D.contact,num='type="number" inputmode="decimal" min="0"';
   const f=(id,label,val,attr)=>`<label>${label}<input id="${id}" value="${esc(val??"")}" ${attr||""}></label>`;
   sheet(`${sheetHead("wallet","",t("setTitle"),t("setS"))}
@@ -1578,8 +1619,8 @@ function xlsxBlob(sheets){const X='<?xml version="1.0" encoding="UTF-8" standalo
   return zipBlob(files,"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
 function excelSheets(D){const meta=D.category_meta||{};
   const coll=[["Flat","Name",...MON.en,"Total"],...D.flats.map(f=>[f.no,f.name,...f.paid,f.total]),["","Total",...D.months.map(M=>M.collected),D.totals.collected]];
-  const exp=[["Month","Date","Description","Category","Amount"]];
-  D.months.forEach((M,m)=>M.entries.forEach(e=>exp.push([MON.enF[m],e.date,e.desc,(meta[e.cat]||{}).en||e.cat,e.amount])));
+  const exp=[["Voucher","Month","Date","Description","Category","Amount","Paid to","Bill / UTR","Paid by"]];
+  D.months.forEach((M,m)=>M.entries.forEach((e,i)=>exp.push([voucherNo(m,i),MON.enF[m],e.date,e.desc,(meta[e.cat]||{}).en||e.cat,e.amount,e.to||"",e.bill||"",e.mode||""])));
   const sum=[["Month","Collected","Expenses","Net"],...D.months.map((M,m)=>[MON.enF[m],M.collected,M.expenses,M.net]),["Total",D.totals.collected,D.totals.expenses,D.totals.collected-D.totals.expenses],
     [],["Opening balance",D.opening],["Bank balance",D.balance],["Monthly maintenance",D.rate],["As of",D.updated]];
   const pay=[["Flat","Name","Month","Amount","Paid on","Paid by"]];
