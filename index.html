@@ -378,6 +378,7 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   vchTitle:"खर्च पावती",vchNo:"पावती क्र.",paidTo:"कोणाला दिले (ऐच्छिक)",refNo:"बिल / UTR क्रमांक (ऐच्छिक)",vchTo:"कोणाला दिले",vchRef:"बिल / UTR क्र.",
   vchImg:"पावती फोटो म्हणून पाठवा",vchShare:"WhatsApp वर पाठवा",vchEdit:"सुधारा / हटवा",
   vchNote:"समितीने नोंदवलेला खर्च. ही संगणकाने तयार केलेली पावती आहे.",
+  repImg:"महिन्याचा अहवाल फोटो म्हणून पाठवा",repCardNote:"समितीने नोंदवलेला हिशोब. ही संगणकाने तयार केलेली माहिती आहे.",
   stmt:"वर्षाचा हिशोब WhatsApp वर पाठवा",stmtHead:"{y} मेंटेनन्स हिशोब",quick:"नेहमीचे खर्च",
   verTitle:"मागील स्थिती परत आणा",verS:"चुकून बदल झाला तर",verHint:"प्रत्येक जतन येथे दिसते. जुनी वेळ निवडल्यास त्यानंतरच्या नोंदी रद्द होतात.",
   verNow:"सध्याची",verGo:"परत आणा",verSure:"या वेळेनंतरच्या सर्व नोंदी जातील. नक्की?",verOld:"ही स्थिती PC च्या काळातील आहे; परत आणता येत नाही.",
@@ -479,6 +480,7 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   vchTitle:"Expense voucher",vchNo:"Voucher no.",paidTo:"Paid to (optional)",refNo:"Bill / UTR number (optional)",vchTo:"Paid to",vchRef:"Bill / UTR no.",
   vchImg:"Send voucher as a photo",vchShare:"Send on WhatsApp",vchEdit:"Edit / delete",
   vchNote:"Expense recorded by the committee. This is a computer-generated voucher.",
+  repImg:"Send the month's report as a photo",repCardNote:"Accounts as recorded by the committee. Computer-generated.",
   stmt:"Send the year's statement on WhatsApp",stmtHead:"{y} maintenance statement",quick:"Usual expenses",
   verTitle:"Bring back an earlier state",verS:"If something was changed by mistake",verHint:"Every save is listed here. Choosing an older time cancels the entries made after it.",
   verNow:"Current",verGo:"Restore",verSure:"All entries made after this time will be lost. Are you sure?",verOld:"This state is from the PC days and cannot be restored.",
@@ -687,7 +689,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-const APP_V="v25";
+const APP_V="v26";
 function diag(){return `${APP_V} · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
@@ -838,7 +840,8 @@ function accView(){const D=S.data,T2=D.totals,net=T2.collected-T2.expenses,sel=S
       <div class="rw"><span class="ct" style="background:var(--brandSoft);color:var(--brand);font-weight:800">Σ</span><span class="tx"><b>${t("total")} · ${monF(sel)}</b></span><span class="am num">${money(mo.expenses)}</span></div></div>`
       :`<div class="empty">${tile("receipt","c7")}${t("noExp")}</div>`}</div>
     ${canEdit()?`<div style="height:12px"></div><button class="btn primary" onclick="expSheet()">${ic("pen")}${t("admExp")}</button>`:""}
-    ${canShare()?`<div style="height:10px"></div><button class="btn wa" onclick="wa(expenseText(${sel}),'')">${ic("chat")}${t("expSend")}</button>`:""}</div>
+    ${canShare()?`<div style="height:10px"></div><button class="btn wa" onclick="wa(expenseText(${sel}),'')">${ic("chat")}${t("expSend")}</button>
+    <div style="height:10px"></div><button class="btn" onclick="shareMonthImage(${sel})">${ic("share")}${t("repImg")}</button>`:""}</div>
   <div class="card"><h3>${tile("pie","c6","sm")}${t("cats")}</h3>
     <div class="dn">${donut(cats.map(([k,v])=>({v,color:meta(k).color||"#6366f1"})),ctot)}<div class="mid"><span>${t("ytdOut")}</span><b class="num">${money(T2.expenses)}</b></div></div>
     ${cats.map(([k,v])=>{const c=meta(k);
@@ -1174,10 +1177,21 @@ async function receiptImage(m){const f=me(),v=f.paid[m],D=S.data;if(!(v>0))retur
   return cardImage({title:t("receipt")+" · "+receiptNo(f,m),label:t("rcptFor").toUpperCase()+" · "+monF(m).toUpperCase()+" "+n(D.year),amount:money(v),
     rows,badge:"✓  "+t("paid"),color:"#059669",soft:"rgba(5,150,105,.13)",note:t("rcptNote")})}
 /* one card design for the member's receipt and the expense voucher */
-async function cardImage(o){const D=S.data;
-  try{await document.fonts.ready}catch(e){}
-  const W=720,H=560+o.rows.length*58,c=document.createElement("canvas");c.width=W*2;c.height=H*2;const x=c.getContext("2d");x.scale(2,2);
+async function cardImage(o){const D=S.data,W=720;
   const F=(w,s)=>`${w} ${s}px "Plus Jakarta Sans","Noto Sans Devanagari",system-ui,"Segoe UI",Roboto,"Nirmala UI",sans-serif`;
+  /* the web fonts must be in memory before the canvas can use them (otherwise the phone draws
+     a different font, or nothing, for Marathi); never wait longer than two seconds */
+  try{const probe=bname()+" "+o.amount+" "+o.rows.map(r=>r.join(" ")).join(" ");
+    await Promise.race([Promise.all([F(800,28),F(600,16),F(800,52),F(600,17),F(800,19),F(800,17),F(500,13)].map(f=>document.fonts.load(f,probe))),new Promise(r=>setTimeout(r,2000))])}catch(e){}
+  /* lay the rows out first: a value that does not fit beside its label goes on its own line(s) */
+  const c=document.createElement("canvas");let x=c.getContext("2d");
+  const lines=(txt,font,w)=>{x.font=font;const out=[];let line="";String(txt).split(" ").forEach(wd=>{const test=line?line+" "+wd:wd;
+    if(x.measureText(test).width>w&&line){out.push(line);line=wd}else line=test});if(line)out.push(line);
+    while(out.length>2){out.pop();out[1]=out[1].replace(/.{0,2}$/,"")+"…"}return out};
+  const inner=W-112,rows=o.rows.map(([k,v])=>{x.font=F(600,17);const kw=x.measureText(k).width;x.font=F(800,19);
+    const fits=x.measureText(String(v)).width<=inner-kw-18;return fits?{k,v:[String(v)],side:true,h:58}:{k,v:lines(v,F(800,19),inner),side:false}}).map(r=>(r.h=r.side?58:26*r.v.length+44,r));
+  const H=560+rows.reduce((s,r)=>s+r.h,0);
+  c.width=W*2;c.height=H*2;x=c.getContext("2d");x.scale(2,2);
   const rr=(X,Y,w,h,r)=>{x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()};
   x.fillStyle="#f3f5fb";x.fillRect(0,0,W,H);
   rr(24,24,W-48,H-48,34);x.fillStyle="#fff";x.fill();
@@ -1189,9 +1203,11 @@ async function cardImage(o){const D=S.data;
   x.font=F(700,13);x.globalAlpha=.8;x.fillText(o.label,56,190);x.globalAlpha=1;
   x.font=F(800,52);x.fillText(o.amount,56,242);
   let y=330;
-  o.rows.forEach(([k,val])=>{x.fillStyle="#667085";x.font=F(600,17);x.fillText(k,56,y);
-    x.fillStyle="#0b1020";x.font=F(800,19);x.textAlign="right";x.fillText(String(val),W-56,y);x.textAlign="left";
-    x.strokeStyle="rgba(15,23,42,.12)";x.setLineDash([4,5]);x.beginPath();x.moveTo(56,y+20);x.lineTo(W-56,y+20);x.stroke();x.setLineDash([]);y+=58});
+  rows.forEach(r=>{x.fillStyle="#667085";x.font=F(600,17);x.fillText(r.k,56,y);
+    x.fillStyle="#0b1020";x.font=F(800,19);
+    if(r.side){x.textAlign="right";x.fillText(r.v[0],W-56,y);x.textAlign="left"}
+    else r.v.forEach((ln,i)=>x.fillText(ln,56,y+26+i*26));
+    const b=r.side?y+20:y+26*r.v.length+10;x.strokeStyle="rgba(15,23,42,.12)";x.setLineDash([4,5]);x.beginPath();x.moveTo(56,b);x.lineTo(W-56,b);x.stroke();x.setLineDash([]);y+=r.h});
   x.font=F(800,17);const bw=x.measureText(o.badge).width+48;
   rr(56,y+8,bw,42,21);x.fillStyle=o.soft;x.fill();x.fillStyle=o.color;x.fillText(o.badge,80,y+36);
   x.fillStyle="#667085";x.font=F(500,13);wrapText(x,o.note,56,y+92,W-112,20);
@@ -1205,6 +1221,16 @@ async function shareImage(blob,name,title,text){if(!blob)return toast(t("admFail
   if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title,text});return}catch(e){if(e.name==="AbortError")return}}
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),20000);toast(t("imgSaved"))}
+
+/* ---- the month on one card: balance, in / out, who has paid, the expense lines */
+async function monthCardImage(m){const D=S.data,M=D.months[m],c=monthCounts(m),x=(a,b)=>S.lang==="mr"?a:b;
+  const rows=[[t("collected"),money(M.collected)],[t("expenses"),money(M.expenses)],[M.net>=0?t("saving"):t("deficit"),money(M.net,true)],[t("paid"),`${n(c.paid)} / ${n(D.flats.length)}`]];
+  M.entries.slice(0,7).forEach(e=>rows.push([plain(e[S.lang]||e.en),money(e.amount)]));
+  if(M.entries.length>7)rows.push(["…",x(`आणखी ${n(M.entries.length-7)}`,`${M.entries.length-7} more`)]);
+  return cardImage({title:x("मासिक अहवाल","Monthly report")+" · "+monF(m)+" "+n(D.year),label:t("bank").toUpperCase(),amount:money(D.balance),rows,
+    badge:(M.net>=0?"✓  ":"!  ")+(M.net>=0?t("saving"):t("deficit"))+" "+money(M.net,true),color:M.net>=0?"#059669":"#e11d48",soft:M.net>=0?"rgba(5,150,105,.13)":"rgba(225,29,72,.1)",note:t("repCardNote")})}
+async function shareMonthImage(m){if(!canShare())return;let blob=null;try{blob=await monthCardImage(m)}catch(e){}
+  return shareImage(blob,`report-${S.data.year}-${String(m+1).padStart(2,"0")}.png`,t("repMonth"),reportText(m,""))}
 
 /* ---- expense voucher: one expense line as a receipt the committee can put in the group */
 function findExp(id){for(let m=0;m<12;m++){const i=S.data.months[m].entries.findIndex(e=>e.id===id);if(i>=0)return {e:S.data.months[m].entries[i],m,i}}return null}
@@ -1588,6 +1614,7 @@ function reportsSheet(){const D=S.data,last=lastMonth(),dues=D.flats.map((f,i)=>
     <label>${t("month")}<select id="rpMonth">${D.months.map((_,m)=>m<=last?`<option value="${m}"${m===curMonth()?" selected":""}>${monF(m)}</option>`:"").join("")}</select></label>
     <label>${t("repNote")}<input id="rpNote" maxlength="200"></label>
     <div style="height:16px"></div><button class="btn wa" onclick="wa(reportText(+$('rpMonth').value,$('rpNote').value.trim()),'')">${ic("chat")}${t("repMonth")}</button>
+    <div style="height:10px"></div><button class="btn primary" onclick="shareMonthImage(+$('rpMonth').value)">${ic("share")}${t("repImg")}</button>
     <div style="height:10px"></div><button class="btn" onclick="wa(expenseText(+$('rpMonth').value),'')">${ic("receipt")}${t("expSend")}</button>
     <div style="height:10px"></div><button class="btn" onclick="sendPending(+$('rpMonth').value)">${ic("list")}${t("pendSend")}</button>
     <h3 style="margin:18px 0 2px;font-size:15px">${t("repDues")}</h3>
