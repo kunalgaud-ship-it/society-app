@@ -378,6 +378,8 @@ mr:{name:"ॐ गुरुदेव रेसिडेन्सी",home:"मु
   vchTitle:"खर्च पावती",vchNo:"पावती क्र.",paidTo:"कोणाला दिले (ऐच्छिक)",refNo:"बिल / UTR क्रमांक (ऐच्छिक)",vchTo:"कोणाला दिले",vchRef:"बिल / UTR क्र.",
   vchImg:"पावती फोटो म्हणून पाठवा",vchShare:"WhatsApp वर पाठवा",vchEdit:"सुधारा / हटवा",
   vchNote:"समितीने नोंदवलेला खर्च. ही संगणकाने तयार केलेली पावती आहे.",
+  invSend:"पाठवा",invTitle:"सदस्यांना आमंत्रण",invS:"ग्रुपसाठी संदेश व प्रत्येक फ्लॅटची लिंक",invGroup:"गटात पाठवा",invPersonal:"प्रत्येक फ्लॅटची स्वतःची लिंक",
+  invHint:"या लिंकने ॲप त्या फ्लॅटसह उघडते; सदस्याला फ्लॅट निवडावा लागत नाही. चुकीचा फ्लॅट निवडला गेल्यासही हीच लिंक पाठवा.",
   repImg:"महिन्याचा अहवाल फोटो म्हणून पाठवा",repCardNote:"समितीने नोंदवलेला हिशोब. ही संगणकाने तयार केलेली माहिती आहे.",
   stmt:"वर्षाचा हिशोब WhatsApp वर पाठवा",stmtHead:"{y} मेंटेनन्स हिशोब",quick:"नेहमीचे खर्च",
   verTitle:"मागील स्थिती परत आणा",verS:"चुकून बदल झाला तर",verHint:"प्रत्येक जतन येथे दिसते. जुनी वेळ निवडल्यास त्यानंतरच्या नोंदी रद्द होतात.",
@@ -480,6 +482,8 @@ en:{name:"Om Gurudev Residency",home:"Home",acc:"Accounts",mem:"Members",not:"No
   vchTitle:"Expense voucher",vchNo:"Voucher no.",paidTo:"Paid to (optional)",refNo:"Bill / UTR number (optional)",vchTo:"Paid to",vchRef:"Bill / UTR no.",
   vchImg:"Send voucher as a photo",vchShare:"Send on WhatsApp",vchEdit:"Edit / delete",
   vchNote:"Expense recorded by the committee. This is a computer-generated voucher.",
+  invSend:"Send",invTitle:"Invite members",invS:"Group message and each flat's own link",invGroup:"Send to group",invPersonal:"Each flat's own link",
+  invHint:"Opens the app with that flat already chosen; the member does not pick a flat. Also the fix when a wrong flat was chosen.",
   repImg:"Send the month's report as a photo",repCardNote:"Accounts as recorded by the committee. Computer-generated.",
   stmt:"Send the year's statement on WhatsApp",stmtHead:"{y} maintenance statement",quick:"Usual expenses",
   verTitle:"Bring back an earlier state",verS:"If something was changed by mistake",verHint:"Every save is listed here. Choosing an older time cancels the entries made after it.",
@@ -689,7 +693,7 @@ function lockScreen(err){hideTabs();
     <p style="margin-top:18px"><button type="button" class="small muted" onclick="toggleLang(true)">${S.lang==="mr"?"English":"मराठी"}</button></p>
     <p class="small muted" style="opacity:.7">${esc(diag())}</p></form></div>`}
 /* one line the member can read out to the committee when the app does not open */
-const APP_V="v26";
+const APP_V="v27";
 function diag(){return `${APP_V} · link ${S.linkKey?"✓":"–"} · saved ${LS.get("pass","")?"✓":"–"} · store ${STORE_OK?"✓":"✗"} · ${IOS?"iPhone":/Android/.test(navigator.userAgent)?"Android":"other"}${STANDALONE?" · app":""}`}
 function tryPass(ev){ev.preventDefault();const v=normPass($("passIn").value);if(!v)return false;S.linkKey=v;S.pass=v;S.enter=true;openData();return false}
 /* Only the committee's flat may switch flats, and only on a phone that was opened with that
@@ -1222,6 +1226,30 @@ async function shareImage(blob,name,title,text){if(!blob)return toast(t("admFail
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),20000);toast(t("imgSaved"))}
 
+/* ---- inviting the members from the phone (the same message the PC app makes) */
+function inviteLink(flat){return location.origin+location.pathname+"#k="+S.pass+(flat?"&flat="+encodeURIComponent(flat):"")}
+function inviteText(flat){const link=inviteLink(flat);
+  return S.lang==="mr"?[`🏢 *${S.data.building_mr}*`,"📲 *सोसायटी मोबाईल ॲप*","",
+      "आता मेंटेनन्सचा हिशोब, आपली थकबाकी, खर्चाचा तपशील आणि सूचना थेट मोबाईलवर पहा.","",
+      "👇 ही लिंक उघडा:",link,"",
+      flat?"📌 ही लिंक फक्त आपल्या फ्लॅटसाठी आहे; उघडल्यावर आपला फ्लॅट आपोआप निवडलेला असेल.":"📌 उघडल्यावर आपला फ्लॅट निवडा.",
+      "📌 मेनूमधून *Add to Home screen* निवडा म्हणजे ॲप मोबाईलवर कायम राहील.",
+      "🔒 ही लिंक फक्त सोसायटी सदस्यांसाठी आहे. कृपया बाहेर शेअर करू नका.","",`— ${S.data.building_mr} समिती`].join("\n")
+    :[`🏢 *${S.data.building}*`,"📲 *Society mobile app*","",
+      "See the maintenance accounts, your dues, expense details and notices on your phone.","",
+      "👇 Open this link:",link,"",
+      flat?"📌 This link is for your flat only; it opens with your flat already chosen.":"📌 Choose your flat when it opens.",
+      "📌 Pick *Add to Home screen* from the browser menu to keep the app on your phone.",
+      "🔒 This link is for society members only. Please do not share it outside.","",`— ${S.data.building} Committee`].join("\n")}
+function inviteSheet(){if(!isAdmin())return;const D=S.data;
+  sheet(`${sheetHead("share","c5",t("invTitle"),t("invS"))}
+    <pre style="white-space:pre-wrap;font:inherit;font-size:13.5px;background:var(--panel2);border-radius:16px;padding:14px;margin:14px 0 12px;overflow-wrap:anywhere">${esc(inviteText(""))}</pre>
+    <button class="btn wa" onclick="wa(inviteText(''),'')">${ic("chat")}${t("invGroup")}</button>
+    <div style="height:10px"></div><button class="btn" onclick="copyText(inviteText(''))">${ic("copy")}${t("copy")}</button>
+    <h3 style="margin:20px 0 2px;font-size:15px">${t("invPersonal")}</h3><p class="small muted">${t("invHint")}</p>
+    <div class="rows">${D.flats.map((f,i)=>String(f.no)===adminFlat()?"":`<div class="rw">${avatar(f,i)}<span class="tx"><b>${esc(f.name)}</b><small>${t("flat")} ${n(f.no)}</small></span>
+      <button class="chip good" style="padding:7px 12px" onclick="wa(inviteText('${esc(String(f.no))}'),'')">${ic("chat")}${t("invSend")}</button></div>`).join("")}</div>`)}
+
 /* ---- the month on one card: balance, in / out, who has paid, the expense lines */
 async function monthCardImage(m){const D=S.data,M=D.months[m],c=monthCounts(m),x=(a,b)=>S.lang==="mr"?a:b;
   const rows=[[t("collected"),money(M.collected)],[t("expenses"),money(M.expenses)],[M.net>=0?t("saving"):t("deficit"),money(M.net,true)],[t("paid"),`${n(c.paid)} / ${n(D.flats.length)}`]];
@@ -1396,6 +1424,7 @@ function adminSheet(){if(!isAdmin())return;
   const D=S.data;
   sheet(`${sheetHead("pen","",t("admin"),D.cloud?t("cloudOnS"):"")}<div class="rows" style="margin-top:8px">
       ${item("chat","c4",t("repTitle"),t("repS"),"reportsSheet()")}
+      ${item("share","c5",t("invTitle"),t("invS"),"inviteSheet()")}
       ${D.cloud?item("wallet","",t("setTitle"),t("setS"),"settingsSheet()")+item("users","c6",t("helpTitle"),t("helpS"),"helpersSheet()")+item("user","c5",t("hoTitle"),t("hoS"),"handoverSheet()"):""}
       ${item("down","c5",t("xlTitle"),t("xlS"),"excelDownload()")}
       ${D.cloud?item("clock","c7",t("logTitle"),t("logS"),"logSheet()")+item("refresh","c2",t("verTitle"),t("verS"),"versionsSheet()"):""}</div>
