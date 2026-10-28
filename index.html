@@ -886,7 +886,7 @@ function memView(){const D=S.data,m=S.memMonth,c=monthCounts(m),mine=String(S.fl
     <span class="am">${chip(x)}</span></button>`).join("")}</div></div>`}
 /* Committee only: the month's pending list for the society WhatsApp group, worded like the
    one from the PC app (paid = full rate received, partial = something received, else pending). */
-function pendingText(m){const D=S.data,mr=S.lang==="mr",d=new Date(),bar="━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+function pendingText(m){const D=S.data,mr=S.lang==="mr",d=new Date(),bar="━━━━━━━━━━━━━━━━";
   const paid=D.flats.filter(f=>f.paid[m]>=D.rate),part=D.flats.filter(f=>f.paid[m]>0&&f.paid[m]<D.rate),pend=D.flats.filter(f=>!(f.paid[m]>0));
   const left=pend.length+part.length,fl=f=>`${t("flat")} ${n(f.no)} - ${f.name}`;
   const L=[`🏢 *${bname()}*`,bar,`📅 *${monF(m)} ${n(D.year)} - ${mr?"मेंटेनन्स स्थिती":"Maintenance status"}*`,bar,"",
@@ -1626,7 +1626,7 @@ function newYear(){const D=S.data;if(!cloud()||!confirm(t("newYearSure",{y:n(D.y
 /* ---- reports for WhatsApp, worded like the PC app's. Dues are counted up to the current month. */
 function owes(f){return Math.max(0,Math.round(S.data.rate*dueTo()-f.total))}
 function reportText(m,note){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],R=(v,s)=>inr(v,L0,s),N=v=>mr?dev(v):String(v),x=(a,b)=>mr?a:b,d=new Date();
-  const bar="━━━━━━━━━━━━━━━━━━━━━━━━━━━━",line="   ─────────────────────",dues=D.flats.filter(f=>owes(f)>0),ok=v=>v>=0?"✅":"❌";
+  const bar="━━━━━━━━━━━━━━━━",line="   ──────────────",dues=D.flats.filter(f=>owes(f)>0),ok=v=>v>=0?"✅":"❌";
   const L=[`🏢 *${bname()}*`,bar,`📅 *${monF(m)} ${N(D.year)} - ${x("तपशीलवार अहवाल","Monthly Report")}*`,bar,"",x("🙏 *प्रिय सोसायटी सदस्यांनो,*","🙏 *Dear Society Members,*"),"",
     `💰 *${x("बँक खात्यात सध्याची शिल्लक","Current bank balance")}:* ${R(D.balance)}`,`📥 *${x("जमा","Collected")}:* ${R(M.collected)}`,`📤 *${x("खर्च","Expenses")}:* ${R(M.expenses)}`,
     `💰 *${x("निकाल","Result")}:* `+(M.net>=0?`✅ ${x("बचत","Savings")} ${R(M.net,true)}`:`❌ ${x("तूट","Deficit")} ${R(M.net)}`),"",x("📋 *खर्चाचा तपशील:*","📋 *Expense details:*")];
@@ -1646,11 +1646,11 @@ function reportText(m,note){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],
     bar,`🏢 *${bname()}${x(" समिती"," Committee")}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
   return L.join("\n")}
 /* only the month's expenses, for the society group, with the bank balance now */
-function expenseText(m){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],R=v=>inr(v,L0),x=(a,b)=>mr?a:b,d=new Date(),bar="━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+function expenseText(m){const D=S.data,L0=S.lang,mr=L0==="mr",M=D.months[m],R=v=>inr(v,L0),x=(a,b)=>mr?a:b,d=new Date(),bar="━━━━━━━━━━━━━━━━";
   const L=[`🏢 *${bname()}*`,bar,`📤 *${monF(m)} ${n(D.year)} - ${x("मासिक खर्च","Monthly expenses")}*`,bar,""];
   if(!M.entries.length)L.push(x("या महिन्यात खर्च नोंदवलेला नाही.","No expenses recorded this month."));
   M.entries.forEach((e,i)=>L.push(`${n(i+1)}. ${e[L0]||e.en}: ${R(e.amount)}${e.date?`  (${fmtDate(e.date)})`:""}`));
-  L.push("","─────────────────────",`💵 *${x("एकूण खर्च","Total expenses")}:* ${R(M.expenses)}`,`🏦 *${x("बँकेत सध्याची शिल्लक","Bank balance now")}:* ${R(D.balance)}`,"",bar,`🏢 *${bname()}${x(" समिती"," Committee")}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
+  L.push("","──────────────",`💵 *${x("एकूण खर्च","Total expenses")}:* ${R(M.expenses)}`,`🏦 *${x("बँकेत सध्याची शिल्लक","Bank balance now")}:* ${R(D.balance)}`,"",bar,`🏢 *${bname()}${x(" समिती"," Committee")}*`,`📅 ${n(d.getDate())} ${monF(d.getMonth())} ${n(d.getFullYear())}`,bar);
   return L.join("\n")}
 function reminderText(f){const D=S.data,mr=S.lang==="mr",R=v=>inr(v,S.lang),x=(a,b)=>mr?a:b;
   const months=f.paid.map((v,m)=>m<dueTo()&&v<D.rate?mon(m):"").filter(Boolean).join(", ")||"-";
